@@ -1,0 +1,15 @@
+# Simple Dockerfile for pre-built Flutter web app
+# Use this when you've already built the Flutter app locally
+# The build/web directory should already exist with compiled files
+
+FROM nginx:alpine
+
+# Copy the pre-built web files
+# Assumes build/web directory exists (from local build)
+COPY build/web /usr/share/nginx/html
+
+# Expose port 80 (default nginx port)
+EXPOSE 80
+
+# Start nginx in foreground (required for Docker containers)
+CMD ["nginx", "-g", "daemon off;"]

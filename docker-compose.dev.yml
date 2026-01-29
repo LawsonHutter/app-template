@@ -1,0 +1,18 @@
+# Development-specific overrides
+version: '3.8'
+
+services:
+  backend:
+    build:
+      target: development
+    volumes:
+      - ./backend:/app
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DEBUG=1
+
+  frontend:
+    # In development, Flutter runs locally, so we might not need this service
+    # Or use it to serve static files if needed
+    profiles:
+      - frontend-only

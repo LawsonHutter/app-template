@@ -1,0 +1,2 @@
+Verbose ssh:
+ssh -i security\your-key.pem ubuntu@YOUR_EC2_IP_ADDRESS

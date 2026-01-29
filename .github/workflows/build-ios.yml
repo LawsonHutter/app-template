@@ -1,0 +1,104 @@
+name: Build iOS for TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'API Base URL'
+        required: false
+        default: 'https://dipoll.net/api/counter/'
+      build_number:
+        description: 'Build Number (optional)'
+        required: false
+        default: ''
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/build-ios.yml'
+    tags:
+      - 'ios-v*'
+
+env:
+  FLUTTER_VERSION: '3.24.3'
+
+jobs:
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build iOS (no codesign)
+        working-directory: frontend
+        env:
+          API_BASE_URL: ${{ github.event.inputs.api_url || 'https://dipoll.net/api/counter/' }}
+          BUILD_NUMBER: ${{ github.event.inputs.build_number || github.run_number }}
+        run: |
+          flutter build ios --release \
+            --no-codesign \
+            --dart-define=API_BASE_URL=$API_BASE_URL \
+            --build-number=$BUILD_NUMBER
+
+      - name: Archive iOS app
+        working-directory: frontend
+        run: |
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath build/ios/Runner.xcarchive \
+            archive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+      - name: Export IPA
+        working-directory: frontend
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/ios/Runner.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO || true
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: frontend/build/ios/ipa/*.ipa
+          retention-days: 30
+
+      - name: Upload Xcode archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-archive
+          path: frontend/build/ios/Runner.xcarchive
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "## iOS Build Complete ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**API URL:** ${{ github.event.inputs.api_url || 'https://dipoll.net/api/counter/' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build Number:** ${{ github.event.inputs.build_number || github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the IPA artifact from this workflow run" >> $GITHUB_STEP_SUMMARY
+          echo "2. Use **Transporter** app (Mac) or **Xcode** to upload to App Store Connect" >> $GITHUB_STEP_SUMMARY
+          echo "3. Or use the archive with Xcode Organizer" >> $GITHUB_STEP_SUMMARY
