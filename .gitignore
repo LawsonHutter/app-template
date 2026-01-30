@@ -48,7 +48,7 @@ frontend/.flutter-plugins-dependencies
 frontend/.packages
 frontend/.pub-cache/
 frontend/.pub/
-frontend/build/
+# IMPORTANT: frontend/build/ is NOT ignored - we commit pre-built frontend for deployment
 frontend/web/main.dart.js
 frontend/web/main.dart.js.map
 

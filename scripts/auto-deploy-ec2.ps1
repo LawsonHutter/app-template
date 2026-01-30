@@ -1,6 +1,6 @@
 # Auto Deploy to EC2
 # This script automatically deploys your app to EC2 instance
-# It copies code, builds frontend, sets up environment, and starts services
+# Uses git pull to sync code (including pre-built frontend from build-frontend-local.ps1)
 # Reads from security/deployment.config if no parameters provided
 
 param(
@@ -12,9 +12,6 @@ param(
     
     [Parameter(Mandatory=$false)]
     [string]$Domain = "",
-    
-    [Parameter(Mandatory=$false)]
-    [switch]$SkipBuild = $false,
     
     [Parameter(Mandatory=$false)]
     [switch]$SkipMigrations = $false
@@ -74,10 +71,16 @@ if ([string]::IsNullOrWhiteSpace($Domain)) {
     }
 }
 
-# GitHub URL for git-based deploy (faster than SCP)
+# GitHub URL (required for deployment)
 $githubUrl = $config["GITHUB_URL"]
 $githubBranch = $config["GITHUB_BRANCH"]
 if ([string]::IsNullOrWhiteSpace($githubBranch)) { $githubBranch = "main" }
+
+if ([string]::IsNullOrWhiteSpace($githubUrl)) {
+    Write-Host "ERROR: GITHUB_URL is required in security\deployment.config" -ForegroundColor Red
+    Write-Host "Example: GITHUB_URL=https://github.com/yourusername/your-repo.git" -ForegroundColor Yellow
+    exit 1
+}
 
 # Resolve key path
 $absoluteKeyPath = Join-Path $projectRoot $KeyPath
@@ -94,8 +97,8 @@ icacls $absoluteKeyPath /grant:r "${env:USERNAME}:R" 2>$null | Out-Null
 
 Write-Host "EC2 IP: $EC2IP" -ForegroundColor Yellow
 Write-Host "SSH Key: $absoluteKeyPath" -ForegroundColor Yellow
+Write-Host "GitHub: $githubUrl (branch: $githubBranch)" -ForegroundColor Green
 if ($Domain) { Write-Host "Domain: $Domain" -ForegroundColor Yellow }
-if ($githubUrl) { Write-Host "Deploy mode: git ($githubUrl)" -ForegroundColor Green } else { Write-Host "Deploy mode: SCP (copy files)" -ForegroundColor Yellow }
 Write-Host ""
 
 # Build SSH target (avoid @$ in double quotes)
@@ -114,54 +117,60 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Connection successful" -ForegroundColor Green
 Write-Host ""
 
-# Step 1: Sync code to EC2 (git pull or SCP)
-Write-Host "Step 1: Syncing code to EC2..." -ForegroundColor Cyan
-Write-Host ""
-
-if (-not [string]::IsNullOrWhiteSpace($githubUrl)) {
-    # Git-based deploy: clone or pull from GitHub (faster)
-    $gitCmd = "if [ -d ~/app/.git ]; then cd ~/app && git fetch origin && git reset --hard origin/" + $githubBranch + " && git pull origin " + $githubBranch + "; else (cp ~/app/.env /tmp/app.env.bak 2>/dev/null; rm -rf ~/app; git clone -b " + $githubBranch + " '" + $githubUrl + "' ~/app; mv /tmp/app.env.bak ~/app/.env 2>/dev/null); fi"
-    Write-Host "  Pulling from GitHub ($githubBranch)..." -ForegroundColor Yellow
-    & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $gitCmd
-
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Git pull/clone failed" -ForegroundColor Red
-        Write-Host "Check GITHUB_URL in security\deployment.config" -ForegroundColor Yellow
-        exit 1
-    }
-    Write-Host "  Code synced from GitHub" -ForegroundColor Green
-} else {
-    # SCP deploy: copy files
-    $scpBackendDest = $sshTarget + ":~/app/"
-    Write-Host "  Copying backend..." -ForegroundColor Yellow
-    & scp -i $absoluteKeyPath -r -o StrictHostKeyChecking=no "$projectRoot\backend" $scpBackendDest 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Failed to copy backend" -ForegroundColor Red
-        exit 1
-    }
-    Write-Host "  Backend copied" -ForegroundColor Green
-
-    Write-Host "  Copying frontend..." -ForegroundColor Yellow
-    & scp -i $absoluteKeyPath -r -o StrictHostKeyChecking=no "$projectRoot\frontend" $scpBackendDest 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Failed to copy frontend" -ForegroundColor Red
-        exit 1
-    }
-    Write-Host "  Frontend copied" -ForegroundColor Green
-
-    Write-Host "  Copying Docker configuration..." -ForegroundColor Yellow
-    & scp -i $absoluteKeyPath -o StrictHostKeyChecking=no "$projectRoot\docker-compose.yml" $scpBackendDest 2>$null
-    & scp -i $absoluteKeyPath -o StrictHostKeyChecking=no "$projectRoot\docker-compose.prod.yml" $scpBackendDest 2>$null
-
-    $nginxConfPath = "$projectRoot\infra\nginx\nginx.http.conf"
-    if (Test-Path $nginxConfPath) {
-        & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'mkdir -p ~/app/infra/nginx' 2>$null
-        $scpNginxDest = $sshTarget + ":~/app/infra/nginx/"
-        & scp -i $absoluteKeyPath -o StrictHostKeyChecking=no $nginxConfPath $scpNginxDest 2>$null
-    }
-    Write-Host "  Configuration files copied" -ForegroundColor Green
+# Check if frontend build exists locally
+$localBuildPath = Join-Path $projectRoot "frontend\build\web"
+if (-not (Test-Path $localBuildPath)) {
+    Write-Host "ERROR: Frontend build not found locally" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Build the frontend first:" -ForegroundColor Yellow
+    Write-Host "  .\scripts\build-frontend-local.ps1" -ForegroundColor Gray
+    Write-Host "  git add frontend/build" -ForegroundColor Gray
+    Write-Host "  git commit -m 'Build frontend'" -ForegroundColor Gray
+    Write-Host "  git push origin main" -ForegroundColor Gray
+    exit 1
 }
 
+# Check if frontend build is committed to git
+$gitStatus = & git status --porcelain frontend/build 2>&1
+if ($gitStatus) {
+    Write-Host "WARNING: Frontend build has uncommitted changes" -ForegroundColor Yellow
+    Write-Host "Commit and push before deploying:" -ForegroundColor Yellow
+    Write-Host "  git add frontend/build" -ForegroundColor Gray
+    Write-Host "  git commit -m 'Build frontend'" -ForegroundColor Gray
+    Write-Host "  git push origin main" -ForegroundColor Gray
+    Write-Host ""
+    $continue = Read-Host "Continue anyway? (y/N)"
+    if ($continue -ne "y") {
+        exit 1
+    }
+}
+
+Write-Host "Frontend build found and committed" -ForegroundColor Green
+Write-Host ""
+
+# Step 1: Sync code from GitHub
+Write-Host "Step 1: Syncing code from GitHub..." -ForegroundColor Cyan
+
+# Ensure git is installed
+Write-Host "  Checking git is installed..." -ForegroundColor Gray
+& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'which git || (sudo apt update && sudo apt install -y git)' 2>$null
+
+Write-Host "  Pulling from GitHub ($githubBranch)..." -ForegroundColor Yellow
+$gitCmd = "if [ -d ~/app/.git ]; then cd ~/app && git fetch origin && git reset --hard origin/" + $githubBranch + " && git pull origin " + $githubBranch + "; else (cp ~/app/.env /tmp/app.env.bak 2>/dev/null; rm -rf ~/app; git clone -b " + $githubBranch + " '" + $githubUrl + "' ~/app && mv /tmp/app.env.bak ~/app/.env 2>/dev/null || true); fi"
+& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $gitCmd
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "ERROR: Git pull/clone failed" -ForegroundColor Red
+    Write-Host "Possible causes:" -ForegroundColor Yellow
+    Write-Host "  - Repository is private (needs authentication)" -ForegroundColor Gray
+    Write-Host "  - GITHUB_URL is incorrect" -ForegroundColor Gray
+    Write-Host "  - Network issue on EC2" -ForegroundColor Gray
+    Write-Host "" -ForegroundColor Gray
+    Write-Host "Try manually: ssh to EC2 and run:" -ForegroundColor Yellow
+    Write-Host ("  git clone " + $githubUrl + " ~/app") -ForegroundColor Gray
+    exit 1
+}
+Write-Host "  Code synced from GitHub" -ForegroundColor Green
 Write-Host ""
 
 # Step 2: Check/create .env file
@@ -216,28 +225,8 @@ if ($envExists -eq "missing") {
 
 Write-Host ""
 
-# Step 3: Build frontend (if not skipped)
-if (-not $SkipBuild) {
-    Write-Host "Step 3: Building frontend on EC2..." -ForegroundColor Cyan
-    Write-Host "  (This may take 5-10 minutes)" -ForegroundColor Gray
-    
-    & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app/frontend && flutter pub get && flutter build web --release'
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Frontend build failed" -ForegroundColor Red
-        Write-Host "You can skip this step with -SkipBuild and build manually" -ForegroundColor Yellow
-        exit 1
-    }
-    
-    Write-Host "  Frontend built successfully" -ForegroundColor Green
-    Write-Host ""
-} else {
-    Write-Host "Step 3: Skipping frontend build (-SkipBuild)" -ForegroundColor Yellow
-    Write-Host ""
-}
-
-# Step 4: Update nginx config with domain/IP
-Write-Host "Step 4: Configuring nginx..." -ForegroundColor Cyan
+# Step 3: Update nginx config with domain/IP
+Write-Host "Step 3: Configuring nginx..." -ForegroundColor Cyan
 
 if ($Domain) {
     $serverName = "$Domain www.$Domain"
@@ -250,22 +239,27 @@ $nginxCmd = "cd ~/app && if [ -f infra/nginx/nginx.http.conf ]; then sed -i 's/s
 Write-Host "  Nginx configured" -ForegroundColor Green
 Write-Host ""
 
-# Step 5: Deploy with Docker
-Write-Host "Step 5: Deploying with Docker..." -ForegroundColor Cyan
+# Step 4: Deploy with Docker (uses pre-built frontend from git)
+Write-Host "Step 4: Deploying with Docker..." -ForegroundColor Cyan
+Write-Host "  (Using pre-built frontend from repository)" -ForegroundColor Gray
 
 & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app && docker compose -f docker-compose.yml -f docker-compose.prod.yml down 2>/dev/null; docker compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d && sleep 10 && docker compose -f docker-compose.yml -f docker-compose.prod.yml ps'
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Docker deployment failed" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "If frontend build is missing, run locally:" -ForegroundColor Yellow
+    Write-Host "  .\scripts\build-frontend-local.ps1" -ForegroundColor Gray
+    Write-Host "  git add frontend/build && git commit -m 'Build frontend' && git push" -ForegroundColor Gray
     exit 1
 }
 
 Write-Host "  Docker services started" -ForegroundColor Green
 Write-Host ""
 
-# Step 6: Run migrations (if not skipped)
+# Step 5: Run migrations (if not skipped)
 if (-not $SkipMigrations) {
-    Write-Host "Step 6: Running database migrations..." -ForegroundColor Cyan
+    Write-Host "Step 5: Running database migrations..." -ForegroundColor Cyan
     
     & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app && docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput && docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput'
     
@@ -276,12 +270,12 @@ if (-not $SkipMigrations) {
     }
     Write-Host ""
 } else {
-    Write-Host "Step 6: Skipping migrations (-SkipMigrations)" -ForegroundColor Yellow
+    Write-Host "Step 5: Skipping migrations (-SkipMigrations)" -ForegroundColor Yellow
     Write-Host ""
 }
 
-# Step 7: Verify deployment
-Write-Host "Step 7: Verifying deployment..." -ForegroundColor Cyan
+# Step 6: Verify deployment
+Write-Host "Step 6: Verifying deployment..." -ForegroundColor Cyan
 
 & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app && docker compose -f docker-compose.yml -f docker-compose.prod.yml ps'
 

@@ -50,5 +50,9 @@ SQUARESPACE_DOMAIN_SETUP.md
 
 Push to git to it can pull the latest
 
+To build the frontend:
+.\scripts\build-frontend-local.ps1
+
 Then run the second script at the end of EC2_LAUNCH_SETTINGS.md
 .\scripts\auto-deploy-ec2.ps1
+

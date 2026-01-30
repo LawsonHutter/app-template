@@ -23,12 +23,10 @@ services:
           cpus: '0.25'
 
   frontend:
-    # Build Flutter inside Docker container (no local Flutter required)
+    # Use pre-built frontend (run scripts/build-frontend-local.ps1 first, then commit to git)
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        API_BASE_URL: "${API_BASE_URL:-/api/counter/}"
+      dockerfile: Dockerfile.simple
 
   # Nginx reverse proxy for production
   nginx:

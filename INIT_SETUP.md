@@ -129,6 +129,7 @@ To run in separate terminals instead:
 - EC2 instance running Ubuntu 22.04 or 24.04 LTS
 - SSH key (.pem file) in `security/` directory
 - Domain name pointing to EC2 IP (optional)
+- GitHub repository (public or private with authentication)
 
 ### Launch EC2 Instance
 
@@ -144,56 +145,78 @@ To run in separate terminals instead:
    - HTTPS (443) from **"Anywhere"** (0.0.0.0/0)
 5. **Storage**: Increase to **20-30 GiB** (not 8 GiB - too small!)
 6. **Auto-assign public IP**: Enable
+7. **Elastic IP**: Allocate and associate (recommended for production)
 
 **After launch**: Save your `.pem` key file to `security/` directory
 
+### Configure Deployment Settings
+
+1. **Copy example config:**
+   ```powershell
+   copy security\deployment.config.example security\deployment.config
+   ```
+
+2. **Edit `security/deployment.config`:**
+   ```
+   EC2_IP=YOUR_EC2_PUBLIC_IP
+   EC2_ELASTIC_IP=YOUR_ELASTIC_IP  # If you allocated one
+   DOMAIN=yourdomain.com            # Optional
+   KEY_PATH=security/your-key.pem
+   GITHUB_URL=https://github.com/yourusername/your-repo.git
+   GITHUB_BRANCH=main
+   ```
+
 ### Initial EC2 Setup
 
-1. **Connect to EC2:**
-   ```powershell
-   .\scripts\connect-ec2.ps1 -EC2IP "YOUR_EC2_IP" -KeyPath "security\your-key.pem"
-   ```
-
-2. **On EC2, install Docker:**
-   ```bash
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   sudo usermod -aG docker ubuntu
-   ```
-
-3. **Clone and set up project on EC2:**
-   ```bash
-   git clone YOUR_REPO_URL app
-   cd app
-   ```
-
-4. **Copy backend and frontend to EC2:**
-   ```powershell
-   .\scripts\copy-backend-frontend-to-ec2.ps1 -EC2IP "YOUR_EC2_IP" -KeyPath "security\your-key.pem"
-   ```
-
-5. **On EC2, start services:**
-   ```bash
-   cd ~/app
-   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-   ```
-
-### Update Frontend (After Code Changes)
-
-**Option A: Build locally and deploy (Recommended - faster):**
+**One-time setup (installs Docker, etc.):**
 ```powershell
-.\scripts\build-and-deploy-frontend.ps1 `
-  -EC2IP "YOUR_EC2_IP" `
-  -KeyPath "security\your-key.pem" `
-  -ApiUrl "https://your-domain.com/api/counter/"
+.\scripts\setup-ec2.ps1
 ```
 
-**Option B: Build on EC2:**
+This automatically:
+- Tests SSH connection
+- Updates system packages
+- Installs Docker and Docker Compose
+- Creates app directory
+- Prepares EC2 for deployment
+
+### Deploy Application
+
+**First deployment:**
 ```powershell
-# SSH to EC2 and run:
-cd ~/app
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build frontend
+# 1. Build frontend locally (faster than on EC2)
+.\scripts\build-frontend-local.ps1
+
+# 2. Commit and push to GitHub
+git add frontend/build
+git commit -m "Build frontend"
+git push origin main
+
+# 3. Deploy to EC2
+.\scripts\auto-deploy-ec2.ps1
 ```
+
+**Subsequent deployments (after making changes):**
+```powershell
+# 1. Build frontend
+.\scripts\build-frontend-local.ps1
+
+# 2. Commit and push
+git add .
+git commit -m "Your changes"
+git push origin main
+
+# 3. Deploy
+.\scripts\auto-deploy-ec2.ps1
+```
+
+The deployment script automatically:
+- Pulls latest code from GitHub
+- Creates/updates `.env` file
+- Configures nginx
+- Builds and starts Docker containers
+- Runs database migrations
+- Verifies deployment
 
 ---
 
@@ -265,11 +288,10 @@ Then upload via Xcode:
 - `scripts/start-frontend-local.ps1` - Start Flutter web only
 
 ### EC2 Deployment
-- `scripts/setup-ec2.ps1` - **NEW**: Set up a fresh EC2 instance (install Docker, etc.)
-- `scripts/auto-deploy-ec2.ps1` - **NEW**: Complete automated deployment to EC2
+- `scripts/setup-ec2.ps1` - Set up a fresh EC2 instance (install Docker, etc.)
+- `scripts/build-frontend-local.ps1` - Build Flutter web locally (faster than on EC2)
+- `scripts/auto-deploy-ec2.ps1` - Complete automated deployment to EC2 (pulls from GitHub)
 - `scripts/connect-ec2.ps1` - SSH to EC2 instance
-- `scripts/copy-backend-frontend-to-ec2.ps1` - Copy code to EC2
-- `scripts/build-and-deploy-frontend.ps1` - Build Flutter locally and deploy to EC2
 
 ### iOS/TestFlight
 - `scripts/build-ios.ps1` - Build iOS app (macOS only)

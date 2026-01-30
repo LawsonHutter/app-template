@@ -146,20 +146,34 @@ This project supports **two deployment modes** - use either depending on your ne
 **First time setup (new EC2 instance):**
 ```powershell
 # 1. Launch EC2 instance in AWS Console (Ubuntu 22.04 LTS)
-# 2. Set up EC2 instance (installs Docker, etc.)
-.\scripts\setup-ec2.ps1 -EC2IP "YOUR_EC2_IP"
+# 2. Configure security/deployment.config with EC2_IP, KEY_PATH, GITHUB_URL
+# 3. Set up EC2 instance (installs Docker, etc.)
+.\scripts\setup-ec2.ps1
 
-# 3. Deploy everything automatically
-.\scripts\auto-deploy-ec2.ps1 -EC2IP "YOUR_EC2_IP" -Domain "yourdomain.com"
+# 4. Build frontend locally
+.\scripts\build-frontend-local.ps1
+
+# 5. Commit and push
+git add frontend/build
+git commit -m "Build frontend"
+git push origin main
+
+# 6. Deploy everything automatically
+.\scripts\auto-deploy-ec2.ps1
 ```
 
-**Manual deployment (alternative):**
+**Subsequent deployments:**
 ```powershell
-# Copy code to EC2
-.\scripts\copy-backend-frontend-to-ec2.ps1 -EC2IP "YOUR_EC2_IP"
+# 1. Build frontend locally
+.\scripts\build-frontend-local.ps1
 
-# Deploy frontend updates
-.\scripts\build-and-deploy-frontend.ps1 -EC2IP "YOUR_EC2_IP" -ApiUrl "https://your-domain.com/api/counter/"
+# 2. Commit and push
+git add frontend/build
+git commit -m "Build frontend"
+git push origin main
+
+# 3. Deploy
+.\scripts\auto-deploy-ec2.ps1
 ```
 
 ### Deploy to TestFlight

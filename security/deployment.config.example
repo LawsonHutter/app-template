@@ -11,7 +11,7 @@ EC2_ELASTIC_IP=
 # Domain (optional - for nginx and CORS config)
 DOMAIN=yourdomain.com
 
-# GitHub repo URL - if set, deploy uses "git pull" instead of copying files (faster)
+# GitHub repo URL - REQUIRED for deployment (uses git pull to sync code)
 # Example: https://github.com/yourusername/your-repo.git
 GITHUB_URL=
 

@@ -61,15 +61,16 @@ Essential scripts for deploying the Counter App to EC2 and TestFlight.
 
 ## EC2 Deployment
 
-### `setup-ec2.ps1` ⭐ **NEW - Recommended for first-time setup**
+### `setup-ec2.ps1` ⭐ **First-time EC2 setup**
 **Purpose:** Set up a fresh EC2 instance with Docker and all prerequisites
 
 **Usage:**
 ```powershell
-.\scripts\setup-ec2.ps1 -EC2IP "YOUR_EC2_IP" -KeyPath "security\app-key.pem"
+.\scripts\setup-ec2.ps1
 ```
 
 **What it does:**
+- Reads configuration from `security/deployment.config`
 - Tests SSH connection to EC2
 - Updates system packages
 - Installs Docker and Docker Compose
@@ -86,48 +87,87 @@ Essential scripts for deploying the Counter App to EC2 and TestFlight.
 - EC2 instance running Ubuntu 22.04 LTS (or similar)
 - Security group allows SSH (port 22) from your IP
 - SSH key (.pem file) downloaded from AWS
+- `security/deployment.config` configured with EC2_IP, KEY_PATH
 
 ---
 
-### `auto-deploy-ec2.ps1` ⭐ **NEW - Complete automated deployment**
-**Purpose:** Fully automated deployment to EC2 (copies code, builds, configures, deploys)
+### `build-frontend-local.ps1` ⭐ **Build Flutter locally**
+**Purpose:** Build Flutter web app on your local machine (faster than building on EC2)
 
 **Usage:**
 ```powershell
-.\scripts\auto-deploy-ec2.ps1 -EC2IP "YOUR_EC2_IP" -Domain "yourdomain.com"
+.\scripts\build-frontend-local.ps1
+```
+
+**What it does:**
+- Reads API URL from `security/deployment.config`
+- Checks Flutter is installed locally
+- Runs `flutter pub get`
+- Builds Flutter web with `flutter build web --release`
+- Outputs to `frontend/build/web`
+
+**When to use:**
+- **Before every deployment** to EC2
+- After making frontend changes
+- To prepare production-ready frontend build
+
+**Prerequisites:**
+- Flutter SDK installed locally
+- `security/deployment.config` configured with DOMAIN or EC2_IP
+
+---
+
+### `auto-deploy-ec2.ps1` ⭐ **Complete automated deployment**
+**Purpose:** Fully automated deployment to EC2 (pulls code from GitHub, deploys with Docker)
+
+**Usage:**
+```powershell
+.\scripts\auto-deploy-ec2.ps1
 ```
 
 **Parameters:**
-- `-EC2IP` (required): Your EC2 instance IP address
-- `-KeyPath` (optional): Path to SSH key (default: `security\app-key.pem`)
-- `-Domain` (optional): Your domain name (for nginx config)
-- `-SkipBuild` (optional): Skip frontend build step
 - `-SkipMigrations` (optional): Skip database migrations
 
 **What it does:**
-1. Copies backend and frontend code to EC2
-2. Copies Docker configuration files
-3. Creates/updates `.env` file with generated values
-4. Builds Flutter frontend on EC2 (or skip with `-SkipBuild`)
+1. Reads configuration from `security/deployment.config`
+2. Tests SSH connection to EC2
+3. Pulls latest code from GitHub (including pre-built frontend)
+4. Creates/updates `.env` file with generated values
 5. Configures nginx with domain/IP
 6. Builds and starts Docker containers
 7. Runs database migrations
-8. Collects static files
-9. Verifies deployment
+8. Verifies deployment
 
 **When to use:**
 - **After running `setup-ec2.ps1`** for initial deployment
+- After building frontend locally with `build-frontend-local.ps1`
+- After pushing changes to GitHub
 - For complete automated deployments
-- When you want everything done automatically
 
-**Example:**
+**Example workflow:**
 ```powershell
-# First time: Set up EC2
-.\scripts\setup-ec2.ps1 -EC2IP "54.123.45.67"
+# 1. First time: Set up EC2
+.\scripts\setup-ec2.ps1
 
-# Then: Deploy everything
-.\scripts\auto-deploy-ec2.ps1 -EC2IP "54.123.45.67" -Domain "myapp.net"
+# 2. Build frontend locally
+.\scripts\build-frontend-local.ps1
+
+# 3. Commit and push
+git add frontend/build
+git commit -m "Build frontend"
+git push origin main
+
+# 4. Deploy to EC2
+.\scripts\auto-deploy-ec2.ps1
 ```
+
+**Prerequisites:**
+- `security/deployment.config` configured with:
+  - `EC2_ELASTIC_IP` or `EC2_IP`
+  - `KEY_PATH`
+  - `GITHUB_URL` (required)
+  - `GITHUB_BRANCH` (optional, defaults to main)
+  - `DOMAIN` (optional)
 
 ---
 
