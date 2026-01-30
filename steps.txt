@@ -56,3 +56,4 @@ To build the frontend:
 Then run the second script at the end of EC2_LAUNCH_SETTINGS.md
 .\scripts\auto-deploy-ec2.ps1
 
+This will only work with http and not https.  Need to setup SSL certificates
