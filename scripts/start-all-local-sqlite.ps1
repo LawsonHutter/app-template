@@ -7,7 +7,7 @@ Write-Host ""
 # Check and stop Docker if running
 Write-Host "Checking for Docker containers..." -ForegroundColor Yellow
 $containers = docker ps --format "{{.Names}}" 2>$null
-$ourContainers = $containers | Where-Object { $_ -match "survey-" }
+$ourContainers = $containers | Where-Object { $_ -match "counter-" }
 
 if ($ourContainers) {
     Write-Host "Stopping Docker containers to free up ports..." -ForegroundColor Yellow

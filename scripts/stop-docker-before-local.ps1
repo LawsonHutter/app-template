@@ -14,7 +14,7 @@ try {
 
 # Check if containers are running
 $containers = docker ps --format "{{.Names}}" 2>$null
-$ourContainers = $containers | Where-Object { $_ -match "survey-" }
+$ourContainers = $containers | Where-Object { $_ -match "counter-" }
 
 if ($ourContainers) {
     Write-Host "Found running Docker containers detected:" -ForegroundColor Yellow

@@ -45,4 +45,4 @@ RUN pip install gunicorn
 # Collect static files (if needed)
 # RUN python manage.py collectstatic --noinput || true
 # Use gunicorn for production
-CMD ["gunicorn", "survey_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+CMD ["gunicorn", "counter_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]

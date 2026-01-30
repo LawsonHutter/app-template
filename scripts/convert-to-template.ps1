@@ -8,7 +8,7 @@ Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Configuration - Update these if needed
-$PROJECT_NAME = "survey-web-app"
+$PROJECT_NAME = "app"
 $TEMPLATE_NAME = "flutter-django-template"
 $DOMAIN_PLACEHOLDER = "yourdomain.com"
 $BUNDLE_ID_PLACEHOLDER = "com.yourdomain.yourapp"
@@ -16,8 +16,8 @@ $APP_NAME_PLACEHOLDER = "Your App Name"
 
 Write-Host "This will replace project-specific values with placeholders:" -ForegroundColor Yellow
 Write-Host "  - Domain: dipoll.net -> $DOMAIN_PLACEHOLDER" -ForegroundColor Gray
-Write-Host "  - Bundle ID: com.dipoll.surveyapp -> $BUNDLE_ID_PLACEHOLDER" -ForegroundColor Gray
-Write-Host "  - App Name: Survey App -> $APP_NAME_PLACEHOLDER" -ForegroundColor Gray
+Write-Host "  - Bundle ID: com.dipoll.counterapp -> $BUNDLE_ID_PLACEHOLDER" -ForegroundColor Gray
+Write-Host "  - App Name: Counter App -> $APP_NAME_PLACEHOLDER" -ForegroundColor Gray
 Write-Host ""
 
 $confirm = Read-Host "Continue? (y/N)"
@@ -32,7 +32,7 @@ Write-Host "Converting files..." -ForegroundColor Green
 # Files to update (relative to project root)
 $filesToUpdate = @(
     "codemagic.yaml",
-    "frontend/lib/survey_screen.dart",
+    "frontend/lib/counter_screen.dart",
     "frontend/lib/main.dart",
     "readme.md",
     "docs/DEPLOYMENT_STEPS.md",
@@ -52,9 +52,9 @@ $filesToUpdate = @(
 # Replacements
 $replacements = @{
     "dipoll.net" = $DOMAIN_PLACEHOLDER
-    "com.dipoll.surveyapp" = $BUNDLE_ID_PLACEHOLDER
+    "com.dipoll.counterapp" = $BUNDLE_ID_PLACEHOLDER
     "dipoll" = "your-app-name"
-    "Survey App" = $APP_NAME_PLACEHOLDER
+    "Counter App" = $APP_NAME_PLACEHOLDER
     "S67R9DU7BU" = "YOUR_KEY_ID"
     "187efa47-e5eb-4d34-8a00-e50fc4825b69" = "YOUR_ISSUER_ID"
     "SMLSUDFRH5" = "YOUR_TEAM_ID"

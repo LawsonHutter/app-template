@@ -32,7 +32,7 @@ DOMAIN=yourdomain.com
 SECRET_KEY=your-secret-key-here
 DEBUG=0
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com,YOUR_EC2_IP_ADDRESS
-DATABASE_URL=postgresql://survey_user:YOUR_DB_PASSWORD@db:5432/survey_db
+DATABASE_URL=postgresql://counter_user:YOUR_DB_PASSWORD@db:5432/counter_db
 CORS_ALLOWED_ORIGINS=http://yourdomain.com,https://www.yourdomain.com
 POSTGRES_PASSWORD=YOUR_DB_PASSWORD
 "@

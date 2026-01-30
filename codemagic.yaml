@@ -25,7 +25,7 @@ workflows:
       vars:
         # Default API URL - can be overridden in Codemagic UI
         API_BASE_URL: "https://your-app-name.net/api/counter/"
-        APP_ID: "com.your-app-name.surveyapp"  # Update this with your Bundle ID
+        APP_ID: "com.your-app-name.counterapp"  # Update this with your Bundle ID
     scripts:
       - name: Get Flutter dependencies
         script: |

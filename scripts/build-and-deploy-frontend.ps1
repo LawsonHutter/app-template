@@ -8,7 +8,7 @@ param(
     [string]$EC2IP = 'YOUR_EC2_IP_ADDRESS',
 
     [Parameter(Mandatory = $false)]
-    [string]$KeyPath = 'security\survey-app-key.pem',
+    [string]$KeyPath = 'security\app-key.pem',
 
     [Parameter(Mandatory = $false)]
     [string]$ApiUrl = 'http://your-app-name.net/api/counter/'
@@ -87,8 +87,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # Copy Dockerfile.simple to EC2 so the server can build the nginx image
-scp -i $absoluteKeyPath $dockerfileSimplePath ('ubuntu@' + $EC2IP + ':~/survey-web-app/frontend/Dockerfile.simple') | Out-Null
-scp -i $absoluteKeyPath $dockerignorePath ('ubuntu@' + $EC2IP + ':~/survey-web-app/frontend/.dockerignore') | Out-Null
+scp -i $absoluteKeyPath $dockerfileSimplePath ('ubuntu@' + $EC2IP + ':~/app/frontend/Dockerfile.simple') | Out-Null
+scp -i $absoluteKeyPath $dockerignorePath ('ubuntu@' + $EC2IP + ':~/app/frontend/.dockerignore') | Out-Null
 
 Write-Host 'Step 3: Build nginx image on EC2 (no Flutter build) and restart frontend...' -ForegroundColor Yellow
 Write-Host ''
@@ -96,7 +96,7 @@ Write-Host ''
 $remoteScript = @'
 set -euo pipefail
 
-cd ~/survey-web-app
+cd ~/app
 
 echo 'Stopping frontend...'
 docker compose -f docker-compose.yml -f docker-compose.prod.yml stop frontend || true
@@ -115,7 +115,7 @@ echo 'Sanity check (first few files):'
 ls -la frontend/build/web | head -20
 
 echo 'Building frontend image (nginx only, no Flutter compilation)...'
-DOCKER_BUILDKIT=0 docker build -f frontend/Dockerfile.simple -t survey-web-app-frontend:latest frontend/
+DOCKER_BUILDKIT=0 docker build -f frontend/Dockerfile.simple -t app-frontend:latest frontend/
 
 echo 'Starting frontend (no-build)...'
 COMPOSE_COMPATIBILITY=1 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --no-build frontend

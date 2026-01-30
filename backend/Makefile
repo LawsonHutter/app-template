@@ -40,7 +40,7 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -r {} +
 
 docker-build:
-	docker build -t survey-backend .
+	docker build -t counter-backend .
 
 docker-up:
 	docker-compose up -d

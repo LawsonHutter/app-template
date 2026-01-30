@@ -50,7 +50,7 @@ $replacements = @{
 # Files to update
 $filesToUpdate = @(
     "codemagic.yaml",
-    "frontend/lib/survey_screen.dart",
+    "frontend/lib/counter_screen.dart",
     "frontend/lib/main.dart",
     "readme.md",
     "docs/DEPLOYMENT_STEPS.md",

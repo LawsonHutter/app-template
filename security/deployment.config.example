@@ -1,0 +1,22 @@
+# Deployment configuration
+# Copy to deployment.config and fill in your values.
+# deployment.config is gitignored - never commit real IPs or secrets.
+
+# EC2 IP addresses
+# EC2_ELASTIC_IP is preferred (static, survives restarts)
+# EC2_IP is the dynamic Public IPv4 (changes on restart)
+EC2_IP=54.123.45.67
+EC2_ELASTIC_IP=
+
+# Domain (optional - for nginx and CORS config)
+DOMAIN=yourdomain.com
+
+# GitHub repo URL - if set, deploy uses "git pull" instead of copying files (faster)
+# Example: https://github.com/yourusername/your-repo.git
+GITHUB_URL=
+
+# Branch to pull (default: main)
+GITHUB_BRANCH=main
+
+# SSH key (path relative to project root)
+KEY_PATH=security/counter-app-key.pem

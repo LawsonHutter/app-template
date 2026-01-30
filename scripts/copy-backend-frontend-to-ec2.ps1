@@ -6,7 +6,7 @@ param(
     [string]$EC2IP,
     
     [Parameter(Mandatory=$false)]
-    [string]$KeyPath = "security\survey-app-key.pem"
+    [string]$KeyPath = "security\app-key.pem"
 )
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -46,7 +46,7 @@ if (-not (Test-Path $frontendPath)) {
 Write-Host "Copying backend/ directory..." -ForegroundColor Green
 $backendExclude = "--exclude='backend/venv' --exclude='backend/__pycache__' --exclude='backend/*.pyc' --exclude='backend/db.sqlite3' --exclude='backend/.pytest_cache' --exclude='backend/.coverage' --exclude='backend/htmlcov' --exclude='backend/dist' --exclude='backend/build' --exclude='backend/*.egg-info' --exclude='backend/media' --exclude='backend/staticfiles'"
 
-$backendCommand = "scp -i `"$absoluteKeyPath`" -r $backendExclude `"$backendPath`" ubuntu@${EC2IP}:~/survey-web-app/"
+$backendCommand = "scp -i `"$absoluteKeyPath`" -r $backendExclude `"$backendPath`" ubuntu@${EC2IP}:~/app/"
 Write-Host "Command: $backendCommand" -ForegroundColor Gray
 Invoke-Expression $backendCommand
 
@@ -61,7 +61,7 @@ Write-Host ""
 Write-Host "Copying frontend/ directory..." -ForegroundColor Green
 $frontendExclude = "--exclude='frontend/.dart_tool' --exclude='frontend/.flutter-plugins' --exclude='frontend/.flutter-plugins-dependencies' --exclude='frontend/.packages' --exclude='frontend/.pub-cache' --exclude='frontend/.pub' --exclude='frontend/build' --exclude='frontend/web/main.dart.js' --exclude='frontend/web/main.dart.js.map'"
 
-$frontendCommand = "scp -i `"$absoluteKeyPath`" -r $frontendExclude `"$frontendPath`" ubuntu@${EC2IP}:~/survey-web-app/"
+$frontendCommand = "scp -i `"$absoluteKeyPath`" -r $frontendExclude `"$frontendPath`" ubuntu@${EC2IP}:~/app/"
 Write-Host "Command: $frontendCommand" -ForegroundColor Gray
 Invoke-Expression $frontendCommand
 
@@ -78,7 +78,7 @@ Write-Host "  Copy Complete!" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps on EC2:" -ForegroundColor Yellow
-Write-Host "  1. Verify: ls -la ~/survey-web-app/backend" -ForegroundColor Gray
-Write-Host "  2. Verify: ls -la ~/survey-web-app/frontend" -ForegroundColor Gray
+Write-Host "  1. Verify: ls -la ~/app/backend" -ForegroundColor Gray
+Write-Host "  2. Verify: ls -la ~/app/frontend" -ForegroundColor Gray
 Write-Host "  3. Continue with deployment" -ForegroundColor Gray
 Write-Host ""

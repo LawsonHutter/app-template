@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'survey_screen.dart';
+import 'counter_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Your App Name',
+      title: 'Counter App',
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
@@ -37,17 +37,6 @@ class MyApp extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
-          ),
-        ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF1A1A1A),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(
-              color: Color(0xFF2D2D2D),
-              width: 1,
-            ),
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -82,7 +71,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const SurveyScreen(),
+      home: const CounterScreen(),
     );
   }
 }

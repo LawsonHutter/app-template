@@ -3,7 +3,7 @@
 
 param(
     [Parameter(Mandatory=$false)]
-    [string]$KeyFile = "survey-app-key.pem"
+    [string]$KeyFile = "app-key.pem"
 )
 
 Write-Host "Fixing SSH key permissions..." -ForegroundColor Cyan

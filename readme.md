@@ -1,23 +1,25 @@
-# Flutter + Django Web App Template
+# Counter App
 
-A full-stack web application template built with Flutter (frontend) and Django (backend).
+A simple counter app with Flutter frontend and Django backend. Press a button to increment a counter stored in the database.
 
-**Use this as a template** to quickly create new projects with:
-- ✅ AWS/EC2 deployment ready
-- ✅ Codemagic iOS build pipeline
-- ✅ TestFlight deployment
-- ✅ Complete documentation
+**Features:**
+- ✅ Flutter web frontend
+- ✅ Django REST API backend
+- ✅ EC2 deployment ready
+- ✅ TestFlight deployment via Codemagic
 
-📚 **Template Setup**: See [`docs/TEMPLATE_SETUP.md`](docs/TEMPLATE_SETUP.md)
+📚 **Quick Start**: See [`INIT_SETUP.md`](INIT_SETUP.md) for initialization and deployment guide  
+
+**Cloning to make a new app?** Run `.\scripts\rename-project.ps1 -AppName "Your App" -Domain "yourapp.net" -BundleId "com.yourdomain.yourapp"` once to rebrand the project, then see [`INIT_SETUP.md`](INIT_SETUP.md) Step 0.
 
 ## Project Structure
 
 ```
-survey-web-app/
+app/
 ├── backend/          # Django REST API backend
 │   ├── manage.py
 │   ├── requirements.txt
-│   ├── survey_backend/
+│   ├── counter_backend/
 │   │   ├── settings.py
 │   │   ├── urls.py
 │   │   └── wsgi.py
@@ -47,32 +49,39 @@ survey-web-app/
   - **Local Development**: SQLite (file: `backend/db.sqlite3`)
   - **Docker/Production**: PostgreSQL (in Docker container)
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
+### Initialize Project
 
-- Python 3.9+
-- Flutter SDK 3.0+
-- Git
+Run the initialization script to set up everything:
 
-### Backend Setup
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+```powershell
+.\scripts\init-project.ps1
 ```
 
-### Frontend Setup
+This will:
+- Set up Python virtual environment
+- Install Django dependencies
+- Run database migrations
+- Install Flutter dependencies
 
-```bash
-cd frontend
-flutter pub get
-flutter run -d chrome
+### Run Locally
+
+**Web Browser:**
+```powershell
+.\scripts\start-local-web.ps1
 ```
+Opens two windows: Django at `http://localhost:8000` and Flutter web at `http://localhost:8080`.
+
+**Android Emulator:**
+```powershell
+.\scripts\start-android.ps1
+```
+Starts backend, launches Flutter emulator if needed, and runs the app. App connects to backend at `http://10.0.2.2:8000`.
+
+**First time?** See [`docs/ANDROID_EMULATOR_SETUP.md`](docs/ANDROID_EMULATOR_SETUP.md) for emulator setup instructions.
+
+📚 **Full Guide**: See [`INIT_SETUP.md`](INIT_SETUP.md) for detailed instructions
 
 ## Development Workflow
 
@@ -132,23 +141,38 @@ This project supports **two deployment modes** - use either depending on your ne
 
 ## Deployment
 
-Ready to deploy to your domain?
+### Deploy to EC2 ⭐ **Automated**
 
-**Quick start**:
+**First time setup (new EC2 instance):**
 ```powershell
-.\scripts\deploy-production.ps1  # Deployment helper
+# 1. Launch EC2 instance in AWS Console (Ubuntu 22.04 LTS)
+# 2. Set up EC2 instance (installs Docker, etc.)
+.\scripts\setup-ec2.ps1 -EC2IP "YOUR_EC2_IP"
+
+# 3. Deploy everything automatically
+.\scripts\auto-deploy-ec2.ps1 -EC2IP "YOUR_EC2_IP" -Domain "yourdomain.com"
 ```
 
-**Full guide**: See [`docs/DEPLOY_TO_PRODUCTION.md`](docs/DEPLOY_TO_PRODUCTION.md)
+**Manual deployment (alternative):**
+```powershell
+# Copy code to EC2
+.\scripts\copy-backend-frontend-to-ec2.ps1 -EC2IP "YOUR_EC2_IP"
 
-**Options**:
-- **AWS** (App Runner, EC2) - See [`docs/DEPLOY_AWS.md`](docs/DEPLOY_AWS.md) ⭐
-- **VPS/Server** (DigitalOcean, Linode) - Full control, ~$6/month
-- **Platform-as-a-Service** (Railway, Render) - Easier, handles SSL/scale
+# Deploy frontend updates
+.\scripts\build-and-deploy-frontend.ps1 -EC2IP "YOUR_EC2_IP" -ApiUrl "https://your-domain.com/api/counter/"
+```
 
-**Development**:
-- Local: Use `venv` or `docker-compose`
-- Production: Use `docker-compose -f docker-compose.yml -f docker-compose.prod.yml`
+### Deploy to TestFlight
+
+1. **Set up Codemagic** (see `codemagic.yaml`)
+2. **Push to main branch:**
+   ```powershell
+   git push origin main
+   ```
+   Codemagic automatically builds and uploads to TestFlight.
+
+📚 **Full Deployment Guide**: See [`INIT_SETUP.md`](INIT_SETUP.md)  
+📚 **Scripts Reference**: See [`scripts/DEPLOYMENT_SCRIPTS.md`](scripts/DEPLOYMENT_SCRIPTS.md)
 
 ## Contributing
 

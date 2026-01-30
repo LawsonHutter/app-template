@@ -6,7 +6,7 @@ param(
     [string]$EC2IP = "YOUR_EC2_IP_ADDRESS",
     
     [Parameter(Mandatory=$false)]
-    [string]$KeyPath = "security\survey-app-key.pem"
+    [string]$KeyPath = "security\app-key.pem"
 )
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -27,7 +27,7 @@ Write-Host "Connecting to EC2..." -ForegroundColor Yellow
 Write-Host ""
 
 # Check Docker containers
-$checkCommand = "cd ~/survey-web-app && " +
+$checkCommand = "cd ~/app && " +
                 "echo '=== Docker Containers ===' && " +
                 "docker compose -f docker-compose.yml -f docker-compose.prod.yml ps && " +
                 "echo '' && " +

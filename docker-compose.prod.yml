@@ -12,7 +12,7 @@ services:
       - .env
     environment:
       - DEBUG=0
-    command: gunicorn survey_backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    command: gunicorn counter_backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
     deploy:
       resources:
         limits:
@@ -24,8 +24,8 @@ services:
 
   frontend:
     # Use pre-built image from build-and-deploy-frontend.ps1
-    # The script builds it with: docker build -f frontend/Dockerfile.simple -t survey-web-app-frontend:latest
-    image: survey-web-app-frontend:latest
+    # The script builds it with: docker build -f frontend/Dockerfile.simple -t app-frontend:latest
+    image: app-frontend:latest
     # Don't build - use the pre-built image
     build:
       context: ./frontend
@@ -34,7 +34,7 @@ services:
   # Nginx reverse proxy for production
   nginx:
     image: nginx:alpine
-    container_name: survey-nginx
+    container_name: app-nginx
     ports:
       - "80:80"
       # - "443:443"  # enable after SSL certs are in place
@@ -49,7 +49,7 @@ services:
       - backend
       - frontend
     networks:
-      - survey-network
+      - app-network
     restart: unless-stopped
     deploy:
       resources:

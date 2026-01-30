@@ -6,7 +6,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: survey-backend
+    container_name: counter-backend
     volumes:
       - ./backend:/app
       - backend_static:/app/staticfiles
@@ -15,7 +15,7 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=1
-      - DATABASE_URL=postgresql://survey_user:survey_pass@db:5432/survey_db
+      - DATABASE_URL=postgresql://counter_user:counter_pass@db:5432/counter_db
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
     # env_file:
     #   - backend/.env  # Uncomment if you create backend/.env file
@@ -23,7 +23,7 @@ services:
       - db
     command: python manage.py runserver 0.0.0.0:8000
     networks:
-      - survey-network
+      - app-network
     deploy:
       resources:
         limits:
@@ -36,17 +36,17 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: survey-db
+    container_name: counter-db
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=survey_user
-      - POSTGRES_PASSWORD=survey_pass
-      - POSTGRES_DB=survey_db
+      - POSTGRES_USER=counter_user
+      - POSTGRES_PASSWORD=counter_pass
+      - POSTGRES_DB=counter_db
     ports:
       - "5432:5432"
     networks:
-      - survey-network
+      - app-network
     deploy:
       resources:
         limits:
@@ -66,7 +66,7 @@ services:
       args:
         # Docker-local frontend should call the Docker-local backend port on the host
         API_BASE_URL: "http://localhost:8000/api/counter/"
-    container_name: survey-frontend
+    container_name: counter-frontend
     volumes:
       - ./frontend:/app
       - /app/build
@@ -75,7 +75,7 @@ services:
     depends_on:
       - backend
     networks:
-      - survey-network
+      - app-network
     deploy:
       resources:
         limits:
@@ -91,5 +91,5 @@ volumes:
   backend_media:
 
 networks:
-  survey-network:
+  app-network:
     driver: bridge

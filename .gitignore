@@ -84,6 +84,7 @@ yarn-error.log*
 .cache/
 
 # Security keys and certificates
+security/deployment.config
 security/*.pem
 security/*.key
 security/*.p8

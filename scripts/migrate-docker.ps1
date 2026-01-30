@@ -16,7 +16,7 @@ try {
 }
 
 # Check if backend container is running
-$backendRunning = docker ps --filter "name=survey-backend" --format "{{.Names}}"
+$backendRunning = docker ps --filter "name=counter-backend" --format "{{.Names}}"
 if (-not $backendRunning) {
     Write-Host "ERROR: Backend container is not running." -ForegroundColor Red
     Write-Host "Start it first with: .\scripts\start-docker.ps1" -ForegroundColor Yellow
