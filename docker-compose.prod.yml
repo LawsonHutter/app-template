@@ -23,13 +23,12 @@ services:
           cpus: '0.25'
 
   frontend:
-    # Use pre-built image from build-and-deploy-frontend.ps1
-    # The script builds it with: docker build -f frontend/Dockerfile.simple -t app-frontend:latest
-    image: app-frontend:latest
-    # Don't build - use the pre-built image
+    # Build Flutter inside Docker container (no local Flutter required)
     build:
       context: ./frontend
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile
+      args:
+        API_BASE_URL: "${API_BASE_URL:-/api/counter/}"
 
   # Nginx reverse proxy for production
   nginx:
