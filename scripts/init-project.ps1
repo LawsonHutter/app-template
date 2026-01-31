@@ -138,5 +138,5 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  Run locally (web): .\scripts\start-local-web.ps1" -ForegroundColor Gray
-Write-Host "  For deployment: see INIT_SETUP.md" -ForegroundColor Gray
+Write-Host "  For deployment: see SETUP_GUIDE.md" -ForegroundColor Gray
 Write-Host ""

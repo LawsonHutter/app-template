@@ -234,4 +234,4 @@ The script reads from `security/deployment.config` automatically. If `GITHUB_URL
 5. ✅ Point your domain DNS to the EC2 IP
 6. ✅ Set up SSL certificate (Let's Encrypt)
 
-See [`INIT_SETUP.md`](../INIT_SETUP.md) for complete deployment guide.
+See [`SETUP_GUIDE.md`](../SETUP_GUIDE.md) for complete deployment guide.

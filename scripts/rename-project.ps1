@@ -51,26 +51,11 @@ $replacements = @(
 # Files to update (relative to project root)
 $files = @(
     "readme.md",
-    "INIT_SETUP.md",
+    "SETUP_GUIDE.md",
     "frontend/lib/main.dart",
     "frontend/lib/counter_screen.dart",
-    "codemagic.yaml",
-    "scripts/build-and-deploy-frontend.ps1",
-    "scripts/check-deployment.ps1",
-    "scripts/copy-backend-frontend-to-ec2.ps1",
-    "scripts/copy-to-ec2.ps1",
-    "scripts/DEPLOYMENT_SCRIPTS.md"
+    "codemagic.yaml"
 )
-
-# Add docs if present
-$docFiles = @(
-    "docs/FIX_API_CONNECTION.md",
-    "docs/BUNDLE_ID_SETUP.md",
-    "docs/CHECK_APP_EXISTS.md",
-    "docs/DEPLOYMENT_STEPS.md",
-    "docs/LAUNCH_APP_TESTFLIGHT.md"
-)
-foreach ($f in $docFiles) { if (Test-Path $f) { $files += $f } }
 
 $updated = 0
 foreach ($path in $files) {

@@ -39,9 +39,24 @@ $content = Get-Content $codemagicPath -Raw
 $content = $content -replace 'API_BASE_URL: "[^"]*"', "API_BASE_URL: `"$apiUrl`""
 $content = $content -replace 'APP_ID: "[^"]*"', "APP_ID: `"$appId`""
 $content = $content -replace 'CODEMAGIC_EMAIL: "[^"]*"', "CODEMAGIC_EMAIL: `"$email`""
+$content = $content -replace 'bundle_identifier: [^\r\n]+', "bundle_identifier: $appId"
 
 Set-Content -Path $codemagicPath -Value $content -NoNewline
-Write-Host "Updated codemagic.yaml:" -ForegroundColor Green
+
+# Sync bundle ID to iOS project
+$pbxPath = Join-Path $projectRoot "frontend\ios\Runner.xcodeproj\project.pbxproj"
+if (Test-Path $pbxPath) {
+    $pbx = Get-Content $pbxPath -Raw
+    $m = [regex]::Match($pbx, 'PRODUCT_BUNDLE_IDENTIFIER = (com\.[^;]+);')
+    if ($m.Success) {
+        $oldBase = $m.Groups[1].Value -replace '\.RunnerTests$', ''
+        $pbx = $pbx.Replace($oldBase, $appId)
+        Set-Content -Path $pbxPath -Value $pbx -NoNewline
+    }
+}
+
+Write-Host "Synced from security/deployment.config:" -ForegroundColor Green
 Write-Host "  API_BASE_URL: $apiUrl"
-Write-Host "  APP_ID: $appId"
+Write-Host "  APP_ID (bundle_identifier): $appId"
 Write-Host "  Email: $email"
+Write-Host "  iOS project.pbxproj: updated"

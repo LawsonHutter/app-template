@@ -120,6 +120,13 @@ Then commit and push.
 
 The repo’s `codemagic.yaml` already triggers on push to `main` when `frontend/` or `codemagic.yaml` change.
 
+### 2.7 Disable Android Workflow (Optional)
+
+To avoid long build times, only build iOS. If Codemagic auto-created an Android workflow:
+1. **Settings** → **Workflows**
+2. Disable or delete the Android workflow
+3. Keep only **iOS Workflow** enabled
+
 ---
 
 ## Part 3: First Build
@@ -158,11 +165,11 @@ Builds usually take 10–20 minutes. On success, the build is uploaded to TestFl
 ## Troubleshooting
 
 **"No valid code signing certificates" / "Did not find matching provisioning profiles"**  
-1. **Link the integration:** In `codemagic.yaml`, add `integrations: app_store_connect: <name>` and use the **exact** name you gave the integration in Codemagic (**Teams** → **Integrations** → Developer Portal).  
-2. **Create the integration:** **Teams** → **Integrations** → **Developer Portal** → Connect → Issuer ID, Key ID, upload `.p8`. Name it e.g. **App Store Connect** so it matches the YAML.  
-3. **ios_signing:** Ensure `ios_signing.bundle_identifier` in `codemagic.yaml` matches your iOS project’s Bundle ID.  
-4. **Same team:** If the app is under a team, the integration must be under **Team integrations** (same team).  
-5. Bundle ID must match everywhere: iOS project, `ios_signing.bundle_identifier`, and App Store Connect app.
+1. **Create the integration** (most common fix): **Teams** → **Integrations** → **Developer Portal** or **App Store Connect** → **Connect**. Add Issuer ID, Key ID, upload `.p8`. Name it **App Store Connect** (must match `integrations.app_store_connect` in `codemagic.yaml`).  
+2. **Same team:** If the app is under a Codemagic team, the integration must be under **Team integrations** (not Personal).  
+3. **API key permissions:** The App Store Connect API key needs **App Manager** or **Admin** access so Codemagic can create provisioning profiles’s Bundle ID.  
+4. **Bundle ID in Apple:** Register the Bundle ID at [developer.apple.com/identifiers](https://developer.apple.com/account/resources/identifiers/list) and create an app in App Store Connect with that exact Bundle ID.  
+5. **Consistency:** `APP_ID`, `ios_signing.bundle_identifier`, and the iOS project must all use the same Bundle ID.
 
 **Upload fails – “App doesn’t exist”**  
 Create the app in App Store Connect (Part 1.3) with the same Bundle ID.
@@ -175,3 +182,4 @@ Use your real HTTPS API URL in `API_BASE_URL` (e.g. `https://lawsonhutter.com/ap
 
 **Credentials not found**  
 Verify variable names and group `app_store_credentials` exactly match what `codemagic.yaml` expects.
+

@@ -1,3 +1,4 @@
+# Android workflow omitted to save build time - only iOS builds run
 workflows:
   ios-workflow:
     name: iOS Workflow
@@ -20,19 +21,19 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
-      # Required for automatic code signing - must match iOS project Bundle ID
+      # Synced from security/deployment.config APP_ID via update-codemagic-config.ps1
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.dipoll.surveyapp
+        bundle_identifier: com.lawsonhutter.counterapp
       groups:
         # Add your environment variables in Codemagic UI under "Environment variables"
         # Required: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
         # Optional: API_BASE_URL (defaults to https://dipoll.net/api/counter/)
         - app_store_credentials
       vars:
-        # Default API URL - can be overridden in Codemagic UI
+        # Synced from security/deployment.config via update-codemagic-config.ps1
         API_BASE_URL: "https://lawsonhutter.com/api/counter/"
-        APP_ID: "com.lawsonhutter.counterapp"  # Update this with your Bundle ID
+        APP_ID: "com.lawsonhutter.counterapp"
         # Email for build notifications (sync from deployment.config via update-codemagic-config.ps1)
         CODEMAGIC_EMAIL: "lawsonhutter01@gmail.com"
     scripts:
@@ -40,12 +41,22 @@ workflows:
         script: |
           cd frontend
           flutter pub get
-      - name: Set up code signing settings on Xcode project
+      - name: Verify App Store Connect credentials
         script: |
-          cd frontend/ios
-          xcode-project use-profiles \
-            --type IOS_APP_STORE \
-            --create
+          echo "Checking App Store Connect credentials..."
+          if [ -z "$APP_STORE_CONNECT_ISSUER_ID" ]; then
+            echo "❌ APP_STORE_CONNECT_ISSUER_ID not set - add in Codemagic env vars (app_store_credentials)"
+            exit 1
+          fi
+          if [ -z "$APP_STORE_CONNECT_KEY_IDENTIFIER" ]; then
+            echo "❌ APP_STORE_CONNECT_KEY_IDENTIFIER not set"
+            exit 1
+          fi
+          if [ -z "$APP_STORE_CONNECT_PRIVATE_KEY" ]; then
+            echo "❌ APP_STORE_CONNECT_PRIVATE_KEY not set - paste .p8 file contents"
+            exit 1
+          fi
+          echo "✅ Credentials present"
       - name: Build ipa for distribution (iOS only)
         script: |
           cd frontend
@@ -63,25 +74,7 @@ workflows:
             echo "IPA file created successfully"
             ls -lh frontend/build/ios/ipa/*.ipa
           fi
-      - name: Verify App Store Connect credentials
-        script: |
-          echo "Checking App Store Connect credentials..."
-          if [ -z "$APP_STORE_CONNECT_ISSUER_ID" ]; then
-            echo "❌ APP_STORE_CONNECT_ISSUER_ID is not set"
-            exit 1
-          fi
-          if [ -z "$APP_STORE_CONNECT_KEY_IDENTIFIER" ]; then
-            echo "❌ APP_STORE_CONNECT_KEY_IDENTIFIER is not set"
-            exit 1
-          fi
-          if [ -z "$APP_STORE_CONNECT_PRIVATE_KEY" ]; then
-            echo "❌ APP_STORE_CONNECT_PRIVATE_KEY is not set"
-            exit 1
-          fi
-          echo "✅ All App Store Connect credentials are set"
-          echo "Issuer ID: ${APP_STORE_CONNECT_ISSUER_ID:0:8}..."
-          echo "Key ID: $APP_STORE_CONNECT_KEY_IDENTIFIER"
-      - name: Upload IPA to App Store Connect (Manual)
+      - name: Upload IPA to App Store Connect
         script: |
           echo "=========================================="
           echo "Uploading IPA to App Store Connect..."
