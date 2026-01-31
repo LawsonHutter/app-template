@@ -53141,7 +53141,7 @@ var $async$lV=A.Q(function(a3,a4){if(a3===1){o=a4
 s=p}while(true)switch(s){case 0:if(n.c==null){s=1
 break}n.ad(new A.Zw(n))
 p=4
-m=A.dO("http://lawsonhutter.com/api/counter/")
+m=A.dO("https://lawsonhutter.com/api/counter/")
 b=t.N
 l=A.hD(m.gG6(),b,t.z)
 J.oj(l,"_t",""+Date.now())
@@ -53193,7 +53193,7 @@ s=p}while(true)switch(s){case 0:n.ad(new A.Zs(n))
 p=4
 h=t.N
 s=7
-return A.S(A.ada(A.dO("http://lawsonhutter.com/api/counter/"),A.aB(["Content-Type","application/json"],h,h)),$async$ov)
+return A.S(A.ada(A.dO("https://lawsonhutter.com/api/counter/"),A.aB(["Content-Type","application/json"],h,h)),$async$ov)
 case 7:m=b
 if(n.c==null){s=1
 break}if(m.b===200){h=m
@@ -53220,7 +53220,7 @@ oT(){var s=0,r=A.P(t.H),q,p=2,o,n=this,m,l,k,j,i,h,g,f,e,d
 var $async$oT=A.Q(function(a,b){if(a===1){o=b
 s=p}while(true)switch(s){case 0:n.ad(new A.ZD(n))
 p=4
-m=A.dO("http://lawsonhutter.com/api/counter/")
+m=A.dO("https://lawsonhutter.com/api/counter/")
 f=B.d.ic(m.gbO(),"/")?m.gbO()+"reset/":m.gbO()+"/reset/"
 l=m.Gm(f)
 f=t.N
