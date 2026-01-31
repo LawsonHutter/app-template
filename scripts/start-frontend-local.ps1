@@ -1,10 +1,31 @@
 # Start Flutter Frontend Locally (Windows PowerShell)
-# This script runs the Flutter web app in development mode
+# Reads LOCAL_WEB_API_URL from security/deployment.config or -ApiUrl param
+
+param(
+    [Parameter(Mandatory=$false)]
+    [string]$ApiUrl = ""
+)
+
+$projectRoot = Split-Path -Parent $PSScriptRoot
+
+# Load API URL from config if not provided
+if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
+    $configPath = Join-Path $projectRoot "security\deployment.config"
+    if (Test-Path $configPath) {
+        Get-Content $configPath | ForEach-Object {
+            if ($_ -match '^LOCAL_WEB_API_URL=(.*)$') {
+                $ApiUrl = $matches[1].Trim()
+            }
+        }
+    }
+}
+if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
+    $ApiUrl = "http://localhost:8000/api/counter/"
+}
 
 Write-Host "Starting Flutter Frontend Locally..." -ForegroundColor Cyan
 
-# Navigate to frontend directory
-Set-Location frontend
+Set-Location (Join-Path $projectRoot "frontend")
 
 # Check if Flutter is installed
 try {
@@ -20,17 +41,14 @@ if (-not (Test-Path ".dart_tool")) {
     Write-Host "Installing Flutter dependencies..." -ForegroundColor Yellow
     flutter pub get
 }
-
-# Check if pubspec.lock exists (indicates dependencies installed)
 if (-not (Test-Path "pubspec.lock")) {
     Write-Host "Installing dependencies..." -ForegroundColor Yellow
     flutter pub get
 }
 
 Write-Host "Starting Flutter web app..." -ForegroundColor Green
-Write-Host "   Frontend will connect to backend at http://localhost:8000" -ForegroundColor Gray
+Write-Host "   API URL: $ApiUrl" -ForegroundColor Gray
 Write-Host "   Press Ctrl+C to stop" -ForegroundColor Gray
 Write-Host ""
 
-# Run Flutter web app (will open in default browser)
-flutter run -d chrome --web-port 8080 --dart-define=API_BASE_URL=http://localhost:8000/api/counter/
+flutter run -d chrome --web-port 8080 --dart-define=API_BASE_URL=$ApiUrl

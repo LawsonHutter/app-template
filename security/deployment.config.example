@@ -2,6 +2,14 @@
 # Copy to deployment.config and fill in your values.
 # deployment.config is gitignored - never commit real IPs or secrets.
 
+# Local development (scripts/start-docker-local.ps1, start-local-web.ps1, start-emulator-docker-backend.ps1)
+# LOCAL_WEB_API_URL = Backend URL for web browser and iOS simulator (localhost)
+LOCAL_WEB_API_URL=http://localhost:8000/api/counter/
+# LOCAL_EMULATOR_API_URL = Backend URL for Android emulator (10.0.2.2 = host machine from emulator)
+LOCAL_EMULATOR_API_URL=http://10.0.2.2:8000/api/counter/
+# LOCAL_BACKEND_PORT = Port the backend listens on (Django default 8000)
+LOCAL_BACKEND_PORT=8000
+
 # EC2 IP addresses
 # EC2_ELASTIC_IP is preferred (static, survives restarts)
 # EC2_IP is the dynamic Public IPv4 (changes on restart)

@@ -29,25 +29,39 @@ If you cloned this as a template:
 
 ## 3. Run Locally (Web)
 
+**Option A – venv + Flutter** (fast iteration):
+
 ```powershell
 .\scripts\start-local-web.ps1
 ```
 
-Launches backend and frontend in separate windows.
+Launches backend and frontend in separate windows. Uses `LOCAL_WEB_API_URL` from `security/deployment.config`.
 
-**Manual:** Launch backend and frontend separately if preferred.
+**Option B – Docker** (matches production stack):
+
+```powershell
+.\scripts\start-docker-local.ps1
+```
+
+Full stack in Docker: backend, PostgreSQL, frontend. Stop with `docker compose -f docker-compose.yml -f docker-compose.local.yml down`.
 
 ---
 
-## 4. Run Locally (Android Emulator)
+## 4. Run Locally (Emulator + Docker Backend)
 
-If not working, run:
+Backend in Docker (PostgreSQL), Flutter on emulator:
 
 ```powershell
-flutter doctor --android-licenses
+# Android (uses 10.0.2.2 to reach host)
+.\scripts\start-emulator-docker-backend.ps1 -Platform android
+
+# iOS simulator (uses localhost)
+.\scripts\start-emulator-docker-backend.ps1 -Platform ios
 ```
 
-Accept all licenses.
+Uses `LOCAL_EMULATOR_API_URL` (Android) and `LOCAL_WEB_API_URL` (iOS) from `security/deployment.config`.
+
+**First time?** Run `flutter doctor --android-licenses` and accept all.
 
 ---
 

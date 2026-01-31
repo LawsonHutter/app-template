@@ -1,0 +1,10 @@
+# Local development override - uses LOCAL_WEB_API_URL from deployment.config
+# Run: .\scripts\start-docker-local.ps1
+
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      args:
+        API_BASE_URL: ${LOCAL_WEB_API_URL:-http://localhost:8000/api/counter/}

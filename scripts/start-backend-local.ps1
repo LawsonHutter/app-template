@@ -7,7 +7,7 @@ Write-Host "Starting Django Backend Locally..." -ForegroundColor Cyan
 $portInUse = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
 if ($portInUse) {
     Write-Host "WARNING: Port 8000 is already in use!" -ForegroundColor Yellow
-    Write-Host "This might be Docker. Run: .\scripts\stop-docker-before-local.ps1" -ForegroundColor Yellow
+    Write-Host "Stop Docker: docker compose down" -ForegroundColor Yellow
     Write-Host ""
 }
 
