@@ -1,0 +1,14 @@
+# SSL/HTTPS override - use after obtaining Let's Encrypt certs (see docs/SSL_SETUP.md)
+# Run: docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.ssl.yml up -d
+
+services:
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Replace nginx.http.conf with your HTTPS config (e.g. nginx.https.conf)
+      - ./infra/nginx/nginx.https.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - backend_static:/var/www/static
+      - backend_media:/var/www/media
