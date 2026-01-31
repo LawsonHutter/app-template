@@ -1,0 +1,48 @@
+# Update codemagic.yaml from deployment.config
+# Syncs APP_ID, API_BASE_URL, and email so you configure once
+
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$configPath = Join-Path $projectRoot "security\deployment.config"
+$codemagicPath = Join-Path $projectRoot "codemagic.yaml"
+
+if (-not (Test-Path $configPath)) {
+    Write-Host "ERROR: security\deployment.config not found" -ForegroundColor Red
+    Write-Host "Copy from security\deployment.config.example and fill in values" -ForegroundColor Yellow
+    exit 1
+}
+
+$config = @{}
+Get-Content $configPath | ForEach-Object {
+    if ($_ -match '^([^#=]+)=(.*)$') {
+        $config[$matches[1].Trim()] = $matches[2].Trim()
+    }
+}
+
+$domain = $config["DOMAIN"]
+$useHttps = $config["USE_HTTPS"] -eq "true"
+$appId = $config["APP_ID"]
+$email = $config["CODEMAGIC_EMAIL"]
+
+if ([string]::IsNullOrWhiteSpace($appId)) {
+    Write-Host "ERROR: APP_ID not set in deployment.config" -ForegroundColor Red
+    exit 1
+}
+
+# Build API URL
+$protocol = if ($useHttps) { "https" } else { "http" }
+$apiUrl = if ($domain) { "$protocol`://$domain/api/counter/" } else { "https://yourdomain.com/api/counter/" }
+
+if ([string]::IsNullOrWhiteSpace($email)) { $email = "your@email.com" }
+
+$content = Get-Content $codemagicPath -Raw
+
+$content = $content -replace 'API_BASE_URL: "[^"]*"', "API_BASE_URL: `"$apiUrl`""
+$content = $content -replace 'APP_ID: "[^"]*"', "APP_ID: `"$appId`""
+# recipients: - email (in publishing.email section)
+$content = $content -replace '(recipients:\s*\n\s+-\s+)[^\s\n]+', "`${1}$email"
+
+Set-Content -Path $codemagicPath -Value $content -NoNewline
+Write-Host "Updated codemagic.yaml:" -ForegroundColor Green
+Write-Host "  API_BASE_URL: $apiUrl"
+Write-Host "  APP_ID: $appId"
+Write-Host "  Email: $email"

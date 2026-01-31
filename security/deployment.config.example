@@ -11,6 +11,12 @@ EC2_ELASTIC_IP=
 # Domain (optional - for nginx and CORS config)
 DOMAIN=yourdomain.com
 
+# Use HTTPS for API URL when building frontend (set true after SSL is set up)
+USE_HTTPS=false
+
+# Email for Let's Encrypt (used by setup-ssl.ps1)
+SSL_EMAIL=your@email.com
+
 # GitHub repo URL - REQUIRED for deployment (uses git pull to sync code)
 # Example: https://github.com/yourusername/your-repo.git
 GITHUB_URL=
@@ -20,3 +26,9 @@ GITHUB_BRANCH=main
 
 # SSH key (path relative to project root)
 KEY_PATH=security/counter-app-key.pem
+
+# Codemagic / TestFlight (for scripts/update-codemagic-config.ps1)
+# APP_ID = Bundle ID (e.g. com.yourdomain.yourapp)
+APP_ID=com.yourdomain.counterapp
+# Email for Codemagic build notifications
+CODEMAGIC_EMAIL=your@email.com

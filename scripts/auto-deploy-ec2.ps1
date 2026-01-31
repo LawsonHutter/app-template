@@ -82,6 +82,11 @@ if ([string]::IsNullOrWhiteSpace($githubUrl)) {
     exit 1
 }
 
+# SSL: if USE_HTTPS=true, use docker-compose.ssl.yml (see docs/SSL_SETUP.md)
+$useHttps = $config["USE_HTTPS"] -eq "true"
+$composeArgs = "-f docker-compose.yml -f docker-compose.prod.yml"
+if ($useHttps) { $composeArgs = $composeArgs + " -f docker-compose.ssl.yml" }
+
 # Resolve key path
 $absoluteKeyPath = Join-Path $projectRoot $KeyPath
 if (-not (Test-Path $absoluteKeyPath)) {
@@ -99,6 +104,7 @@ Write-Host "EC2 IP: $EC2IP" -ForegroundColor Yellow
 Write-Host "SSH Key: $absoluteKeyPath" -ForegroundColor Yellow
 Write-Host "GitHub: $githubUrl (branch: $githubBranch)" -ForegroundColor Green
 if ($Domain) { Write-Host "Domain: $Domain" -ForegroundColor Yellow }
+if ($useHttps) { Write-Host "SSL: enabled (HTTPS)" -ForegroundColor Green }
 Write-Host ""
 
 # Build SSH target (avoid @$ in double quotes)
@@ -243,7 +249,8 @@ Write-Host ""
 Write-Host "Step 4: Deploying with Docker..." -ForegroundColor Cyan
 Write-Host "  (Using pre-built frontend from repository)" -ForegroundColor Gray
 
-& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app && docker compose -f docker-compose.yml -f docker-compose.prod.yml down 2>/dev/null; docker compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d && sleep 10 && docker compose -f docker-compose.yml -f docker-compose.prod.yml ps'
+$deployCmd = "cd ~/app && docker compose " + $composeArgs + " down 2>/dev/null; docker compose " + $composeArgs + " up -d --build && sleep 10 && docker compose " + $composeArgs + " ps"
+& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $deployCmd
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Docker deployment failed" -ForegroundColor Red
@@ -261,7 +268,8 @@ Write-Host ""
 if (-not $SkipMigrations) {
     Write-Host "Step 5: Running database migrations..." -ForegroundColor Cyan
     
-    & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app && docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput && docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput'
+    $migrateCmd = "cd ~/app && docker compose " + $composeArgs + " exec -T backend python manage.py migrate --noinput && docker compose " + $composeArgs + " exec -T backend python manage.py collectstatic --noinput"
+& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $migrateCmd
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host "WARNING: Migrations may have failed. Check logs manually." -ForegroundColor Yellow
@@ -277,7 +285,8 @@ if (-not $SkipMigrations) {
 # Step 6: Verify deployment
 Write-Host "Step 6: Verifying deployment..." -ForegroundColor Cyan
 
-& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cd ~/app && docker compose -f docker-compose.yml -f docker-compose.prod.yml ps'
+$verifyCmd = "cd ~/app && docker compose " + $composeArgs + " ps"
+& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $verifyCmd
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green

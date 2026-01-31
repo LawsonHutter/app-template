@@ -117,6 +117,48 @@ Essential scripts for deploying the Counter App to EC2 and TestFlight.
 
 ---
 
+### `setup-ssl.ps1` ⭐ **Set up HTTPS with Let's Encrypt**
+**Purpose:** Automate full SSL setup (certificate, nginx config, frontend rebuild)
+
+**Usage:**
+```powershell
+.\scripts\setup-ssl.ps1
+```
+
+**Parameters:**
+- `-Email` (optional): Email for Let's Encrypt (or set `SSL_EMAIL` in deployment.config)
+- `-RebuildAndDeploy` (optional): Also rebuild frontend for HTTPS and deploy (otherwise SSL-only)
+
+**What it does:**
+1. Creates nginx HTTPS config from template (replaces domain)
+2. SSHs to EC2, stops nginx, installs Certbot, obtains Let's Encrypt certificate
+3. Commits and pushes nginx.https.conf and docker-compose.ssl.yml
+4. Enables SSL in Docker on EC2 (pulls code, starts with docker-compose.ssl.yml)
+5. If `-RebuildAndDeploy`: sets USE_HTTPS=true, rebuilds frontend, commits, and deploys
+
+**When to use:**
+- After HTTP is working and domain points to EC2
+- One-time SSL setup
+
+**Prerequisites:**
+- Domain pointing to EC2 (A records for @ and www)
+- EC2 security group allows port 443
+- `security/deployment.config` configured with DOMAIN, EC2_IP, KEY_PATH
+
+---
+
+### `update-codemagic-config.ps1` **Sync codemagic.yaml from deployment.config**
+**Purpose:** Update API_BASE_URL, APP_ID, and email in codemagic.yaml from your config
+
+**Usage:**
+```powershell
+.\scripts\update-codemagic-config.ps1
+```
+
+**Prerequisites:** `APP_ID` and optionally `DOMAIN`, `USE_HTTPS`, `CODEMAGIC_EMAIL` in `security/deployment.config`
+
+---
+
 ### `auto-deploy-ec2.ps1` ⭐ **Complete automated deployment**
 **Purpose:** Fully automated deployment to EC2 (pulls code from GitHub, deploys with Docker)
 

@@ -28,9 +28,10 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
         }
         
         # Build API URL from domain or IP
-        # Use HTTP by default (change to HTTPS after setting up SSL certificates)
+        $useHttps = $config["USE_HTTPS"] -eq "true"
+        $protocol = if ($useHttps) { "https" } else { "http" }
         if (-not [string]::IsNullOrWhiteSpace($config["DOMAIN"])) {
-            $ApiUrl = "http://" + $config["DOMAIN"] + "/api/counter/"
+            $ApiUrl = $protocol + "://" + $config["DOMAIN"] + "/api/counter/"
         } elseif (-not [string]::IsNullOrWhiteSpace($config["EC2_ELASTIC_IP"])) {
             $ApiUrl = "http://" + $config["EC2_ELASTIC_IP"] + "/api/counter/"
         } elseif (-not [string]::IsNullOrWhiteSpace($config["EC2_IP"])) {

@@ -178,12 +178,13 @@ git push origin main
 
 ### Deploy to TestFlight
 
-1. **Set up Codemagic** (see `codemagic.yaml`)
-2. **Push to main branch:**
+1. **Set up Codemagic and TestFlight** – see [`docs/CODEMAGIC_TESTFLIGHT_SETUP.md`](docs/CODEMAGIC_TESTFLIGHT_SETUP.md)
+2. **Sync config** (optional): `.\scripts\update-codemagic-config.ps1`
+3. **Push to main branch:**
    ```powershell
    git push origin main
    ```
-   Codemagic automatically builds and uploads to TestFlight.
+   Codemagic automatically builds and uploads to TestFlight when `frontend/` changes.
 
 📚 **Full Deployment Guide**: See [`INIT_SETUP.md`](INIT_SETUP.md)  
 📚 **Scripts Reference**: See [`scripts/DEPLOYMENT_SCRIPTS.md`](scripts/DEPLOYMENT_SCRIPTS.md)

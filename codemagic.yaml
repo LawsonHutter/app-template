@@ -24,8 +24,8 @@ workflows:
         - app_store_credentials
       vars:
         # Default API URL - can be overridden in Codemagic UI
-        API_BASE_URL: "https://your-app-name.net/api/counter/"
-        APP_ID: "com.your-app-name.counterapp"  # Update this with your Bundle ID
+        API_BASE_URL: "https://lawsonhutter.com/api/counter/"
+        APP_ID: "com.lawsonhutter.counterapp"  # Update this with your Bundle ID
     scripts:
       - name: Get Flutter dependencies
         script: |
@@ -134,7 +134,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - lawsonhutter2001@gmail.com  # Update with your email
+          - lawsonhutter01@gmail.com  # Update with your email
         notify:
           success: true
           failure: false
