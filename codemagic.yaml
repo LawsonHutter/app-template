@@ -20,12 +20,12 @@ workflows:
       groups:
         # Add your environment variables in Codemagic UI under "Environment variables"
         # Required: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
-        # Optional: API_BASE_URL (defaults to https://your-app-name.net/api/counter/)
+        # Optional: API_BASE_URL (defaults to https://dipoll.net/api/counter/)
         - app_store_credentials
       vars:
         # Default API URL - can be overridden in Codemagic UI
-        API_BASE_URL: "https://lawsonhutter.com/api/counter/"
-        APP_ID: "com.lawsonhutter.counterapp"  # Update this with your Bundle ID
+        API_BASE_URL: "https://dipoll.net/api/counter/"
+        APP_ID: "com.dipoll.surveyapp"  # Update this with your Bundle ID
     scripts:
       - name: Get Flutter dependencies
         script: |
@@ -40,11 +40,6 @@ workflows:
       - name: Build ipa for distribution (iOS only)
         script: |
           cd frontend
-          # Verify API URL is set
-          echo "API_BASE_URL: $API_BASE_URL"
-          if [ -z "$API_BASE_URL" ]; then
-            echo "⚠️ API_BASE_URL not set, using default from code"
-          fi
           # flutter build ipa only builds iOS, Android is automatically skipped
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
@@ -118,7 +113,7 @@ workflows:
             echo ""
             echo "ACTION REQUIRED:"
             echo "  Go to https://appstoreconnect.apple.com → My Apps"
-            echo "  Create app 'your-app-name' with Bundle ID: com.your-app-name.surveyapp"
+            echo "  Create app with Bundle ID: $APP_ID"
             echo "  Then rebuild"
             exit 1
           }
@@ -134,7 +129,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - lawsonhutter01@gmail.com  # Update with your email
+          - lawsonhutter2001@gmail.com  # Update with your email
         notify:
           success: true
           failure: false

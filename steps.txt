@@ -90,13 +90,16 @@ launch to testflight:
 
 -------------------------------------------------------------------------
 
+
+
+
+-------------------------------------------------------------------------
+
 Commit:
 # Stage everything
 git add .
 
-# Or stage specific files
-git add docs/CODEMAGIC_TESTFLIGHT_SETUP.md
-# git add <other files>
-
 # Commit with a message
 git commit -m "Your commit message here"
+
+git push

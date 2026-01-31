@@ -155,11 +155,16 @@ Builds usually take 10–20 minutes. On success, the build is uploaded to TestFl
 
 ## Troubleshooting
 
+**"No valid code signing certificates" / "Did not find matching provisioning profiles"**  
+1. Ensure `ios_signing` is in `codemagic.yaml` (distribution_type: app_store, bundle_identifier matching your app).  
+2. Add App Store Connect API in Codemagic: **Teams** → **Integrations** → **Developer Portal** → Issuer ID, Key ID, upload `.p8`.  
+3. Bundle ID must match in: iOS project, codemagic.yaml APP_ID, and App Store Connect.
+
 **Upload fails – “App doesn’t exist”**  
 Create the app in App Store Connect (Part 1.3) with the same Bundle ID.
 
 **Code signing errors**  
-Ensure Bundle ID matches everywhere: `codemagic.yaml`, iOS project, App Store Connect, code signing settings.
+Ensure Bundle ID matches everywhere: `codemagic.yaml`, iOS project, App Store Connect, `ios_signing.bundle_identifier`.
 
 **API connection errors in app**  
 Use your real HTTPS API URL in `API_BASE_URL` (e.g. `https://lawsonhutter.com/api/counter/`).
