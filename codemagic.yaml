@@ -17,6 +17,10 @@ workflows:
     environment:
       flutter: stable
       xcode: latest
+      # Required for automatic code signing - must match iOS project Bundle ID
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.dipoll.surveyapp
       groups:
         # Add your environment variables in Codemagic UI under "Environment variables"
         # Required: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
@@ -24,8 +28,10 @@ workflows:
         - app_store_credentials
       vars:
         # Default API URL - can be overridden in Codemagic UI
-        API_BASE_URL: "https://dipoll.net/api/counter/"
-        APP_ID: "com.dipoll.surveyapp"  # Update this with your Bundle ID
+        API_BASE_URL: "https://lawsonhutter.com/api/counter/"
+        APP_ID: "com.lawsonhutter.counterapp"  # Update this with your Bundle ID
+        # Email for build notifications (sync from deployment.config via update-codemagic-config.ps1)
+        CODEMAGIC_EMAIL: "lawsonhutter01@gmail.com"
     scripts:
       - name: Get Flutter dependencies
         script: |
@@ -129,7 +135,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - lawsonhutter2001@gmail.com  # Update with your email
+          - $CODEMAGIC_EMAIL
         notify:
           success: true
           failure: false
