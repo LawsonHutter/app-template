@@ -3,6 +3,9 @@ workflows:
     name: iOS Workflow
     max_build_duration: 120
     instance_type: mac_mini_m1
+    # Link to your App Store Connect API key (Teams → Integrations → name you gave it)
+    integrations:
+      app_store_connect: App Store Connect
     # Automatic triggers - builds on push to main branch or when frontend/ changes
     triggering:
       events:

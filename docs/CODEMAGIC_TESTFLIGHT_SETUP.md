@@ -67,18 +67,20 @@ Step-by-step guide to set up automatic iOS builds and TestFlight deployment.
 
 ### 2.3 App Store Connect Integration (for automatic code signing)
 
-Codemagic needs the API key registered as an **integration** for automatic code signing. This is separate from environment variables.
+Codemagic needs the API key registered as an **integration** and the workflow must reference it. This is separate from environment variables.
 
 1. In Codemagic: **Teams** → **Personal Account** (or your team) → **Integrations**
 2. Find **Developer Portal** or **App Store Connect** → **Connect**
 3. Fill in:
-   - **Integration name**: App Store Connect (or any name)
+   - **Integration name**: Use **App Store Connect** (must match `integrations.app_store_connect` in `codemagic.yaml`)
    - **Issuer ID**: From step 1.2 (UUID format)
    - **Key ID**: From step 1.2 (alphanumeric)
    - **Private key**: Upload your `.p8` file, or paste its full contents
 4. **Save**
 
 If your app is under a team, use **Team integrations** instead so the integration is shared. The key must have **App Manager** or **Admin** access to create provisioning profiles.
+
+**Important:** In `codemagic.yaml`, `integrations.app_store_connect` must be the exact integration name you set above (e.g. `App Store Connect`). If you used a different name, change it in the YAML to match.
 
 ### 2.4 Code Signing
 
@@ -156,9 +158,11 @@ Builds usually take 10–20 minutes. On success, the build is uploaded to TestFl
 ## Troubleshooting
 
 **"No valid code signing certificates" / "Did not find matching provisioning profiles"**  
-1. Ensure `ios_signing` is in `codemagic.yaml` (distribution_type: app_store, bundle_identifier matching your app).  
-2. Add App Store Connect API in Codemagic: **Teams** → **Integrations** → **Developer Portal** → Issuer ID, Key ID, upload `.p8`.  
-3. Bundle ID must match in: iOS project, codemagic.yaml APP_ID, and App Store Connect.
+1. **Link the integration:** In `codemagic.yaml`, add `integrations: app_store_connect: <name>` and use the **exact** name you gave the integration in Codemagic (**Teams** → **Integrations** → Developer Portal).  
+2. **Create the integration:** **Teams** → **Integrations** → **Developer Portal** → Connect → Issuer ID, Key ID, upload `.p8`. Name it e.g. **App Store Connect** so it matches the YAML.  
+3. **ios_signing:** Ensure `ios_signing.bundle_identifier` in `codemagic.yaml` matches your iOS project’s Bundle ID.  
+4. **Same team:** If the app is under a team, the integration must be under **Team integrations** (same team).  
+5. Bundle ID must match everywhere: iOS project, `ios_signing.bundle_identifier`, and App Store Connect app.
 
 **Upload fails – “App doesn’t exist”**  
 Create the app in App Store Connect (Part 1.3) with the same Bundle ID.
