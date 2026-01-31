@@ -54,6 +54,7 @@ $files = @(
     "SETUP_GUIDE.md",
     "frontend/lib/main.dart",
     "frontend/lib/counter_screen.dart",
+    "frontend/ios/Runner/Info.plist",
     "codemagic.yaml"
 )
 

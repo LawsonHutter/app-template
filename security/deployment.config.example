@@ -28,6 +28,8 @@ GITHUB_BRANCH=main
 KEY_PATH=security/counter-app-key.pem
 
 # Codemagic / TestFlight (for scripts/update-codemagic-config.ps1)
+# APP_NAME = Display name on device (e.g. Counter App)
+APP_NAME=Counter App
 # APP_ID = Bundle ID (e.g. com.yourdomain.yourapp)
 APP_ID=com.yourdomain.counterapp
 # Email for Codemagic build notifications

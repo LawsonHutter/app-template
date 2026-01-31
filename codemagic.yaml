@@ -35,7 +35,7 @@ workflows:
         API_BASE_URL: "https://lawsonhutter.com/api/counter/"
         APP_ID: "com.lawsonhutter.counterapp"
         # Email for build notifications (sync from deployment.config via update-codemagic-config.ps1)
-        CODEMAGIC_EMAIL: "lawsonhutter01@gmail.com"
+        CODEMAGIC_EMAIL: "your@email.com"
     scripts:
       - name: Get Flutter dependencies
         script: |
