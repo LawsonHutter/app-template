@@ -29,6 +29,11 @@ __pycache__/
 .env.*.local
 !*.example
 
+# Android signing (never commit keystores or passwords)
+frontend/android/key.properties
+*.jks
+*.keystore
+
 # Flutter / Dart
 # Don't ignore entire frontend/ directory - just ignore specific files
 .dart_tool/

@@ -176,15 +176,14 @@ git push origin main
 .\scripts\auto-deploy-ec2.ps1
 ```
 
-### Deploy to TestFlight
+### Deploy to TestFlight / Google Play
 
-1. **Set up Codemagic and TestFlight** – see [`docs/CODEMAGIC_TESTFLIGHT_SETUP.md`](docs/CODEMAGIC_TESTFLIGHT_SETUP.md)
-2. **Sync config** (optional): `.\scripts\update-codemagic-config.ps1`
-3. **Push to main branch:**
-   ```powershell
-   git push origin main
-   ```
-   Codemagic automatically builds and uploads to TestFlight when `frontend/` changes.
+**iOS (TestFlight):**
+1. See [`docs/CODEMAGIC_TESTFLIGHT_SETUP.md`](docs/CODEMAGIC_TESTFLIGHT_SETUP.md)
+2. Run `.\scripts\update-codemagic-config.ps1` to sync config
+3. Push to main – Codemagic builds and uploads to TestFlight
+
+**Android (Google Play):** See [`docs/GOOGLE_PLAY_SETUP.md`](docs/GOOGLE_PLAY_SETUP.md) – Internal testing is similar to TestFlight (no review, quick distribution)
 
 📚 **Full Deployment Guide**: See [`INIT_SETUP.md`](INIT_SETUP.md)  
 📚 **Scripts Reference**: See [`scripts/DEPLOYMENT_SCRIPTS.md`](scripts/DEPLOYMENT_SCRIPTS.md)

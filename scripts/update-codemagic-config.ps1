@@ -38,8 +38,7 @@ $content = Get-Content $codemagicPath -Raw
 
 $content = $content -replace 'API_BASE_URL: "[^"]*"', "API_BASE_URL: `"$apiUrl`""
 $content = $content -replace 'APP_ID: "[^"]*"', "APP_ID: `"$appId`""
-# recipients: - email (in publishing.email section)
-$content = $content -replace '(recipients:\s*\n\s+-\s+)[^\s\n]+', "`${1}$email"
+$content = $content -replace 'CODEMAGIC_EMAIL: "[^"]*"', "CODEMAGIC_EMAIL: `"$email`""
 
 Set-Content -Path $codemagicPath -Value $content -NoNewline
 Write-Host "Updated codemagic.yaml:" -ForegroundColor Green
