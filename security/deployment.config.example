@@ -32,5 +32,7 @@ KEY_PATH=security/counter-app-key.pem
 APP_NAME=Counter App
 # APP_ID = Bundle ID (e.g. com.yourdomain.yourapp)
 APP_ID=com.yourdomain.counterapp
+# APP_STORE_APPLE_ID = Numeric Apple ID from App Store Connect (General > App Information) - optional, used for auto-incrementing build number
+# APP_STORE_APPLE_ID=1234567890
 # Email for Codemagic build notifications
 CODEMAGIC_EMAIL=your@email.com

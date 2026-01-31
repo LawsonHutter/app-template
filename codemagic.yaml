@@ -60,11 +60,16 @@ workflows:
       - name: Build ipa for distribution (iOS only)
         script: |
           cd frontend
-          # flutter build ipa only builds iOS, Android is automatically skipped
+          # Get next build number: use Apple ID if set, else bundle ID; fallback to CM build number
+          APPLE_ID="${APP_STORE_APPLE_ID:-$APP_ID}"
+          LATEST=$(app-store-connect get-latest-build-number "$APPLE_ID" 2>/dev/null) || LATEST=0
+          NEXT=$((LATEST + 1))
+          [ "$NEXT" -lt 2 ] && NEXT=2
+          echo "Using build number: $NEXT (previous: $LATEST)"
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
             --build-name=1.0.0 \
-            --build-number=$(($(app-store-connect get-latest-build-number "$APP_ID") + 1))
+            --build-number=$NEXT
       - name: Verify IPA was created
         script: |
           if [ ! -f frontend/build/ios/ipa/*.ipa ]; then

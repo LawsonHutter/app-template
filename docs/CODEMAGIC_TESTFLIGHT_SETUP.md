@@ -62,6 +62,7 @@ Step-by-step guide to set up automatic iOS builds and TestFlight deployment.
 | `APP_STORE_CONNECT_KEY_IDENTIFIER` | Key ID from step 1.2 |
 | `APP_STORE_CONNECT_PRIVATE_KEY` | Entire `.p8` file content (with BEGIN/END lines) |
 | `API_BASE_URL` | `https://yourdomain.com/api/counter/` |
+| `APP_STORE_APPLE_ID` | Numeric Apple ID (App Store Connect → App → General → App Information) – for auto build number |
 
 **Note:** Paste the `.p8` content as plain text; do not base64-encode it.
 
