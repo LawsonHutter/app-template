@@ -60,14 +60,9 @@ workflows:
       - name: Build ipa for distribution (iOS only)
         script: |
           cd frontend
-          # Build number must be > previous in App Store Connect. Use max of: App Store latest+1, Codemagic BUILD_NUMBER, or 2
-          APPLE_ID="${APP_STORE_APPLE_ID:-$APP_ID}"
-          LATEST=$(app-store-connect get-latest-build-number "$APPLE_ID" 2>/dev/null) || LATEST=0
-          NEXT=2
-          [ -n "$LATEST" ] && [ "$LATEST" -ge 0 ] && NEXT=$((LATEST + 1))
-          [ -n "$BUILD_NUMBER" ] && [ "$BUILD_NUMBER" -gt "$NEXT" ] 2>/dev/null && NEXT=$BUILD_NUMBER
-          [ "$NEXT" -lt 2 ] && NEXT=2
-          echo "Using build number: $NEXT (App Store previous: $LATEST)"
+          # Build number must be > previous. Use Unix timestamp - always unique and increasing
+          NEXT=$(date +%s)
+          echo "Using build number: $NEXT"
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
             --build-name=1.0.0 \
