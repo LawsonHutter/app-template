@@ -19,14 +19,15 @@ Step-by-step guide to set up and deploy this Flutter/Django app.
 
 ## 2. App Icon (Optional)
 
-Add your app logo at `frontend/assets/app_icon.png` (1024x1024 px), then run:
+Add your app logo at `frontend/assets/app_icon.png` (1024x1024 px, no transparency). Then run:
 
 ```powershell
 cd frontend
 dart run flutter_launcher_icons
+dart run flutter_native_splash:create
 ```
 
-This generates iOS, Android, and web icons. See `frontend/assets/APP_ICON_README.md`.
+This generates iOS/Android/web app icons and replaces the default launch screen. Codemagic runs both automatically before each build.
 
 ---
 
