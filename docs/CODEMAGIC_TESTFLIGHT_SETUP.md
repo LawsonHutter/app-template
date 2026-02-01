@@ -165,6 +165,13 @@ Builds usually take 10–20 minutes. On success, the build is uploaded to TestFl
 
 ## Troubleshooting
 
+**"No matching profiles found for bundle identifier X and distribution type app_store"**  
+1. **Register the Bundle ID** at [developer.apple.com/identifiers](https://developer.apple.com/account/resources/identifiers/list) → **+** → App IDs → App → Explicit → enter your Bundle ID (e.g. `com.lawsonhutter.counterapp`).  
+2. **Create the app in App Store Connect** at [appstoreconnect.apple.com](https://appstoreconnect.apple.com) → My Apps → **+** → New App → select that Bundle ID.  
+3. **Codemagic integration:** **Teams** → **Integrations** → **App Store Connect** → **Connect**. Name it **App Store Connect**, add Issuer ID, Key ID, upload `.p8`. The API key must have **App Manager** or **Admin** access.  
+4. **Same team:** If the app is in a Codemagic team, the integration must be under **Team integrations**.  
+5. **Code signing in Codemagic UI:** **Settings** → **Code signing** → Automatic → Distribution certificate: select your **App Store Connect** integration → Bundle ID: match your `APP_ID`.
+
 **"No valid code signing certificates" / "Did not find matching provisioning profiles"**  
 1. **Create the integration** (most common fix): **Teams** → **Integrations** → **Developer Portal** or **App Store Connect** → **Connect**. Add Issuer ID, Key ID, upload `.p8`. Name it **App Store Connect** (must match `integrations.app_store_connect` in `codemagic.yaml`).  
 2. **Same team:** If the app is under a Codemagic team, the integration must be under **Team integrations** (not Personal).  
