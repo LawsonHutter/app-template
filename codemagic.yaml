@@ -60,9 +60,11 @@ workflows:
       - name: Build ipa for distribution (iOS only)
         script: |
           cd frontend
-          # Build number must be > previous. Use Unix timestamp - always unique and increasing
+          # Build number must be > previous. Patch pubspec.yaml then build (--build-number can be ignored by Flutter)
           NEXT=$(date +%s)
           echo "Using build number: $NEXT"
+          sed -i.bak "s/version: 1.0.0+[0-9]*/version: 1.0.0+$NEXT/" pubspec.yaml
+          grep "version:" pubspec.yaml
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
             --build-name=1.0.0 \
