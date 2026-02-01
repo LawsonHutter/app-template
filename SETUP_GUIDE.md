@@ -159,6 +159,8 @@ Ensure code signing and App Store Connect are enabled in Codemagic.
 
 Push to `main` to trigger builds.
 
+**Note:** When releasing a new build, update `version: 1.0.0+1` in `frontend/pubspec.yaml` (e.g. bump to `1.0.0+2` or `1.0.1+1`).
+
 ---
 
 ## 13. Google Play Setup
