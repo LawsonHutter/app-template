@@ -60,11 +60,15 @@ workflows:
       - name: Build ipa for distribution (iOS only)
         script: |
           cd frontend
-          # Build number must be > previous. Patch pubspec.yaml then build (--build-number can be ignored by Flutter)
+          # Build number must be > previous. Set in pubspec AND Info.plist (Flutter can ignore --build-number)
           NEXT=$(date +%s)
           echo "Using build number: $NEXT"
-          sed -i.bak "s/version: 1.0.0+[0-9]*/version: 1.0.0+$NEXT/" pubspec.yaml
-          grep "version:" pubspec.yaml
+          # Patch pubspec.yaml (perl works on macOS/BSD)
+          perl -i -pe "s/version: 1\.0\.0\+\\d+/version: 1.0.0+$NEXT/" pubspec.yaml
+          # Also patch Info.plist directly - ensures CFBundleVersion is correct
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios/Runner/Info.plist
+          echo "Pubspec version:" && grep "^version:" pubspec.yaml
+          echo "Info.plist CFBundleVersion:" && /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios/Runner/Info.plist
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
             --build-name=1.0.0 \
@@ -150,7 +154,7 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         
-        # Automatically submit to TestFlight (no Mac required!)
-        submit_to_testflight: true
+        # Disabled - we upload via our script (altool) to ensure correct build number
+        # submit_to_testflight: true
         # beta_groups:  # Optional: Specify TestFlight beta groups
         #   - Internal Testing
