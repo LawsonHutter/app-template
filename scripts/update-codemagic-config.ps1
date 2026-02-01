@@ -54,6 +54,14 @@ if (Test-Path $plistPath) {
     Set-Content -Path $plistPath -Value $plist -NoNewline
 }
 
+# Sync API default in Flutter (fallback when dart-define not passed)
+$counterPath = Join-Path $projectRoot "frontend\lib\counter_screen.dart"
+if (Test-Path $counterPath) {
+    $counter = Get-Content $counterPath -Raw
+    $counter = $counter -replace "defaultValue: '[^']*'", "defaultValue: '$apiUrl'"
+    Set-Content -Path $counterPath -Value $counter -NoNewline
+}
+
 # Sync bundle ID to iOS project
 $pbxPath = Join-Path $projectRoot "frontend\ios\Runner.xcodeproj\project.pbxproj"
 if (Test-Path $pbxPath) {
@@ -71,4 +79,4 @@ Write-Host "  API_BASE_URL: $apiUrl"
 Write-Host "  APP_NAME: $appName"
 Write-Host "  APP_ID (bundle_identifier): $appId"
 Write-Host "  Email: $email"
-Write-Host "  iOS Info.plist + project.pbxproj: updated"
+Write-Host "  counter_screen.dart default, iOS Info.plist + project.pbxproj: updated"

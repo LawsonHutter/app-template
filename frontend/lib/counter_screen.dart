@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 // Default to production URL, can be overridden with --dart-define=API_BASE_URL=...
 const String apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'https://your-app-name.net/api/counter/',
+  defaultValue: 'https://lawsonhutter.com/api/counter/',
 );
 
 class CounterScreen extends StatefulWidget {
