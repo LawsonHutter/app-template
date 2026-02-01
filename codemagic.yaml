@@ -60,16 +60,16 @@ workflows:
           # Ensure release build - clean any cached debug artifacts
           flutter clean
           flutter pub get
-          # Build number must be > previous. Set in pubspec AND Info.plist (Flutter can ignore --build-number)
+          # Build number must be > previous. Use timestamp (automatic, no env vars needed)
           NEXT=$(date +%s)
           BUILD_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: \([0-9.]*\)+.*/\1/')
-          echo "Using build name: $BUILD_NAME, build number: $NEXT"
-          # Patch pubspec.yaml (perl works on macOS/BSD)
+          echo "Using build number: $NEXT (timestamp)"
+          echo "Build name: $BUILD_NAME"
+          # Patch pubspec and Info.plist
           perl -i -pe "s/version: [0-9.]+\\+\\d+/version: ${BUILD_NAME}+$NEXT/" pubspec.yaml
-          # Also patch Info.plist directly - ensures CFBundleVersion is correct
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios/Runner/Info.plist
-          echo "Pubspec version:" && grep "^version:" pubspec.yaml
-          echo "Info.plist CFBundleVersion:" && /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios/Runner/Info.plist
+          echo "Patched pubspec:" && grep "^version:" pubspec.yaml
+          echo "Patched Info.plist CFBundleVersion:" && /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios/Runner/Info.plist
           # Must use --release for TestFlight (debug builds show "debug mode" error on device)
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
