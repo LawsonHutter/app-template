@@ -60,6 +60,8 @@ workflows:
           # Ensure release build - clean any cached debug artifacts
           flutter clean
           flutter pub get
+          # Generate app icons from assets/app_icon.png
+          dart run flutter_launcher_icons
           # Build number must be > previous. Use timestamp (automatic, no env vars needed)
           NEXT=$(date +%s)
           BUILD_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: \([0-9.]*\)+.*/\1/')

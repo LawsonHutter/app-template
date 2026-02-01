@@ -40,10 +40,12 @@ if ($confirm -ne "y" -and $confirm -ne "Y") {
 }
 
 # Replacement map: search string -> replacement
+$baseUrl = "https://$Domain/api/counter/"
 $replacements = @(
     @{ Old = "Counter App"; New = $AppName },
     @{ Old = "your-app-name.net"; New = $Domain },
     @{ Old = "your-app-name"; New = $ProjectName },
+    @{ Old = "https://yourdomain.com/api/counter/"; New = $baseUrl },
     @{ Old = "com.your-app-name.counterapp"; New = $BundleId },
     @{ Old = "com.yourdomain.yourapp"; New = $BundleId }
 )

@@ -27,17 +27,21 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
             }
         }
         
-        # Build API URL from domain, IP, or local config
-        $useHttps = $config["USE_HTTPS"] -eq "true"
-        $protocol = if ($useHttps) { "https" } else { "http" }
-        if (-not [string]::IsNullOrWhiteSpace($config["DOMAIN"])) {
-            $ApiUrl = $protocol + "://" + $config["DOMAIN"] + "/api/counter/"
-        } elseif (-not [string]::IsNullOrWhiteSpace($config["EC2_ELASTIC_IP"])) {
-            $ApiUrl = "http://" + $config["EC2_ELASTIC_IP"] + "/api/counter/"
-        } elseif (-not [string]::IsNullOrWhiteSpace($config["EC2_IP"])) {
-            $ApiUrl = "http://" + $config["EC2_IP"] + "/api/counter/"
-        } elseif (-not [string]::IsNullOrWhiteSpace($config["LOCAL_WEB_API_URL"])) {
-            $ApiUrl = $config["LOCAL_WEB_API_URL"]
+        # API URL: API_BASE_URL first, else build from domain/IP
+        if (-not [string]::IsNullOrWhiteSpace($config["API_BASE_URL"])) {
+            $ApiUrl = $config["API_BASE_URL"]
+        } else {
+            $useHttps = $config["USE_HTTPS"] -eq "true"
+            $protocol = if ($useHttps) { "https" } else { "http" }
+            if (-not [string]::IsNullOrWhiteSpace($config["DOMAIN"])) {
+                $ApiUrl = $protocol + "://" + $config["DOMAIN"] + "/api/counter/"
+            } elseif (-not [string]::IsNullOrWhiteSpace($config["EC2_ELASTIC_IP"])) {
+                $ApiUrl = "http://" + $config["EC2_ELASTIC_IP"] + "/api/counter/"
+            } elseif (-not [string]::IsNullOrWhiteSpace($config["EC2_IP"])) {
+                $ApiUrl = "http://" + $config["EC2_IP"] + "/api/counter/"
+            } elseif (-not [string]::IsNullOrWhiteSpace($config["LOCAL_WEB_API_URL"])) {
+                $ApiUrl = $config["LOCAL_WEB_API_URL"]
+            }
         }
     }
 }

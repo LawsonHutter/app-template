@@ -19,7 +19,11 @@ EC2_ELASTIC_IP=
 # Domain (optional - for nginx and CORS config)
 DOMAIN=yourdomain.com
 
-# Use HTTPS for API URL when building frontend (set true after SSL is set up)
+# Production API URL - used for web deploy, iOS/Android builds, and Flutter default
+# If set, overrides DOMAIN+USE_HTTPS. Example: https://yourdomain.com/api/counter/
+API_BASE_URL=
+
+# Use HTTPS for API URL when building frontend (used if API_BASE_URL not set)
 USE_HTTPS=false
 
 # Email for Let's Encrypt (used by setup-ssl.ps1)

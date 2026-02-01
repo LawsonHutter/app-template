@@ -23,15 +23,19 @@ $useHttps = $config["USE_HTTPS"] -eq "true"
 $appId = $config["APP_ID"]
 $appName = $config["APP_NAME"]
 $email = $config["CODEMAGIC_EMAIL"]
+$apiBaseUrl = $config["API_BASE_URL"]
 
 if ([string]::IsNullOrWhiteSpace($appId)) {
     Write-Host "ERROR: APP_ID not set in deployment.config" -ForegroundColor Red
     exit 1
 }
 
-# Build API URL
-$protocol = if ($useHttps) { "https" } else { "http" }
-$apiUrl = if ($domain) { "$protocol`://$domain/api/counter/" } else { "https://yourdomain.com/api/counter/" }
+# API URL: use API_BASE_URL if set, else build from DOMAIN + USE_HTTPS
+$apiUrl = $apiBaseUrl
+if ([string]::IsNullOrWhiteSpace($apiUrl)) {
+    $protocol = if ($useHttps) { "https" } else { "http" }
+    $apiUrl = if ($domain) { "$protocol`://$domain/api/counter/" } else { "https://yourdomain.com/api/counter/" }
+}
 
 if ([string]::IsNullOrWhiteSpace($email)) { $email = "your@email.com" }
 if ([string]::IsNullOrWhiteSpace($appName)) { $appName = "Counter App" }
