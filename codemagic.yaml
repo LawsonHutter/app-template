@@ -15,9 +15,6 @@ workflows:
         - pattern: main
           include: true
           source: true
-      paths:
-        - frontend/**
-        - codemagic.yaml
     environment:
       flutter: stable
       xcode: latest
@@ -62,16 +59,17 @@ workflows:
           cd frontend
           # Build number must be > previous. Set in pubspec AND Info.plist (Flutter can ignore --build-number)
           NEXT=$(date +%s)
-          echo "Using build number: $NEXT"
+          BUILD_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: \([0-9.]*\)+.*/\1/')
+          echo "Using build name: $BUILD_NAME, build number: $NEXT"
           # Patch pubspec.yaml (perl works on macOS/BSD)
-          perl -i -pe "s/version: 1\.0\.0\+\\d+/version: 1.0.0+$NEXT/" pubspec.yaml
+          perl -i -pe "s/version: [0-9.]+\\+\\d+/version: ${BUILD_NAME}+$NEXT/" pubspec.yaml
           # Also patch Info.plist directly - ensures CFBundleVersion is correct
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios/Runner/Info.plist
           echo "Pubspec version:" && grep "^version:" pubspec.yaml
           echo "Info.plist CFBundleVersion:" && /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ios/Runner/Info.plist
           flutter build ipa --release \
             --dart-define=API_BASE_URL="$API_BASE_URL" \
-            --build-name=1.0.0 \
+            --build-name="$BUILD_NAME" \
             --build-number="$NEXT"
       - name: Verify IPA was created
         script: |
@@ -144,17 +142,4 @@ workflows:
           success: true
           failure: false
       app_store_connect:
-        # These credentials should be added in Codemagic UI under "Environment variables"
-        # Group: app_store_credentials
-        # Variables: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
-        
-        # Try explicit variable references instead of auth: integration
-        auth: integration 
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        
-        # Disabled - we upload via our script (altool) to ensure correct build number
-        # submit_to_testflight: true
-        # beta_groups:  # Optional: Specify TestFlight beta groups
-        #   - Internal Testing
+        auth: integration
