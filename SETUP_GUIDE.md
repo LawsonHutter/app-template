@@ -17,7 +17,20 @@ Step-by-step guide to set up and deploy this Flutter/Django app.
 
 ---
 
-## 2. Rename Project (Optional)
+## 2. App Icon (Optional)
+
+Add your app logo at `frontend/assets/app_icon.png` (1024x1024 px), then run:
+
+```powershell
+cd frontend
+dart run flutter_launcher_icons
+```
+
+This generates iOS, Android, and web icons. See `frontend/assets/APP_ICON_README.md`.
+
+---
+
+## 3. Rename Project (Optional)
 
 If you cloned this as a template:
 
@@ -27,7 +40,7 @@ If you cloned this as a template:
 
 ---
 
-## 3. Run Locally (Web)
+## 4. Run Locally (Web)
 
 **Option A – venv + Flutter** (fast iteration):
 
@@ -47,7 +60,7 @@ Full stack in Docker: backend, PostgreSQL, frontend. Stop with `docker compose -
 
 ---
 
-## 4. Run Locally (Emulator + Docker Backend)
+## 5. Run Locally (Emulator + Docker Backend)
 
 Backend in Docker (PostgreSQL), Flutter on emulator:
 
@@ -57,15 +70,20 @@ Backend in Docker (PostgreSQL), Flutter on emulator:
 
 # iOS simulator (uses localhost)
 .\scripts\start-emulator-docker-backend.ps1 -Platform ios
+
+# Physical device? Use -Release to avoid "debug mode" error on iOS 14+
+.\scripts\start-emulator-docker-backend.ps1 -Platform ios -Release
 ```
 
 Uses `LOCAL_EMULATOR_API_URL` (Android) and `LOCAL_WEB_API_URL` (iOS) from `security/deployment.config`.
 
 **First time?** Run `flutter doctor --android-licenses` and accept all.
 
+**"Debug mode flutter apps can only be launched from flutter tooling"** – Use `-Release` when running on a physical iOS device.
+
 ---
 
-## 5. Setup AWS EC2
+## 6. Setup AWS EC2
 
 1. Follow **`docs/EC2_LAUNCH_SETTINGS.md`**
 2. Copy config:
@@ -80,7 +98,7 @@ Uses `LOCAL_EMULATOR_API_URL` (Android) and `LOCAL_WEB_API_URL` (iOS) from `secu
 
 ---
 
-## 6. Domain Setup (Squarespace)
+## 7. Domain Setup (Squarespace)
 
 Follow **`docs/SQUARESPACE_DOMAIN_SETUP.md`**
 
@@ -92,7 +110,7 @@ git push origin main
 
 ---
 
-## 7. Build & Deploy to EC2
+## 8. Build & Deploy to EC2
 
 1. Build frontend:
    ```powershell
@@ -108,7 +126,7 @@ Your site will be up at HTTP (HTTPS requires SSL setup below).
 
 ---
 
-## 8. Setup SSL (HTTPS)
+## 9. Setup SSL (HTTPS)
 
 ```powershell
 .\scripts\setup-ssl.ps1
@@ -116,7 +134,7 @@ Your site will be up at HTTP (HTTPS requires SSL setup below).
 
 ---
 
-## 9. Connect to EC2
+## 10. Connect to EC2
 
 ```powershell
 .\scripts\connect-ec2.ps1
@@ -124,7 +142,7 @@ Your site will be up at HTTP (HTTPS requires SSL setup below).
 
 ---
 
-## 10. Setup Codemagic (iOS / TestFlight)
+## 11. Setup Codemagic (iOS / TestFlight)
 
 1. Follow **`docs/CODEMAGIC_TESTFLIGHT_SETUP.md`**
 2. Update `security/deployment.config` with your values
@@ -135,7 +153,7 @@ Your site will be up at HTTP (HTTPS requires SSL setup below).
 
 ---
 
-## 11. Deploy to TestFlight
+## 12. Deploy to TestFlight
 
 Ensure code signing and App Store Connect are enabled in Codemagic.
 
@@ -143,13 +161,13 @@ Push to `main` to trigger builds.
 
 ---
 
-## 12. Google Play Setup
+## 13. Google Play Setup
 
 Follow **`docs/GOOGLE_PLAY_SETUP.md`**
 
 ---
 
-## 13. Git Commands
+## 14. Git Commands
 
 ```powershell
 git add .

@@ -5,7 +5,9 @@
 param(
     [Parameter(Mandatory=$false)]
     [ValidateSet("android", "ios")]
-    [string]$Platform = "android"
+    [string]$Platform = "android",
+    [Parameter(Mandatory=$false)]
+    [switch]$Release
 )
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -62,9 +64,19 @@ if ($attempt -ge $maxAttempts) {
     Write-Host "Backend is ready." -ForegroundColor Green
 }
 
+$profileFlag = if ($Release) { "--release" } else { "" }
 Write-Host ""
-Write-Host "Starting Flutter on $Platform emulator..." -ForegroundColor Yellow
+if ($Release) {
+    Write-Host "Running in RELEASE mode (avoids 'debug mode' error on physical devices)" -ForegroundColor Cyan
+} else {
+    Write-Host "Tip: Use -Release to run in release mode on physical devices (avoids debug restriction)" -ForegroundColor Gray
+}
+Write-Host "Starting Flutter on $Platform..." -ForegroundColor Yellow
 Write-Host ""
 
 Set-Location (Join-Path $projectRoot "frontend")
-flutter run -d $Platform --dart-define=API_BASE_URL=$apiUrl
+if ($Release) {
+    flutter run -d $Platform --release --dart-define=API_BASE_URL=$apiUrl
+} else {
+    flutter run -d $Platform --dart-define=API_BASE_URL=$apiUrl
+}

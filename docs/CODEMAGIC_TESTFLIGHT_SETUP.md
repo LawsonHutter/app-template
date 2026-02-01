@@ -191,3 +191,6 @@ Use your real HTTPS API URL in `API_BASE_URL` (e.g. `https://lawsonhutter.com/ap
 **Credentials not found**  
 Verify variable names and group `app_store_credentials` exactly match what `codemagic.yaml` expects.
 
+**TestFlight build shows "debug mode" error on device**  
+The `codemagic.yaml` uses `flutter build ipa --release`. If you still see debug behavior: in Codemagic **Settings** → **Build** (or Workflow) → ensure **iOS** build mode is **Release**, not Debug. The YAML should override, but if the UI has Debug selected it can affect the build.
+
