@@ -162,20 +162,102 @@ Write-Host "  Checking git is installed..." -ForegroundColor Gray
 & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'which git || (sudo apt update && sudo apt install -y git)' 2>$null
 
 Write-Host "  Pulling from GitHub ($githubBranch)..." -ForegroundColor Yellow
-$gitCmd = "if [ -d ~/app/.git ]; then cd ~/app && git fetch origin && git reset --hard origin/" + $githubBranch + " && git pull origin " + $githubBranch + "; else (cp ~/app/.env /tmp/app.env.bak 2>/dev/null; rm -rf ~/app; git clone -b " + $githubBranch + " '" + $githubUrl + "' ~/app && mv /tmp/app.env.bak ~/app/.env 2>/dev/null || true); fi"
-& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $gitCmd
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: Git pull/clone failed" -ForegroundColor Red
+# Ensure ~/app directory exists
+& ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'mkdir -p ~/app' 2>$null
+
+# If using SSH URL, add GitHub to known_hosts and check SSH key setup
+if ($githubUrl -match '^git@') {
+    Write-Host "  Using SSH authentication..." -ForegroundColor Gray
+    
+    # Add GitHub to known_hosts to avoid "Host key verification failed"
+    Write-Host "  Adding GitHub to known_hosts..." -ForegroundColor Gray
+    $knownHostsCmd = "mkdir -p ~/.ssh && ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null || true"
+    & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $knownHostsCmd 2>$null
+    
+    # Check if SSH key exists, if not provide instructions
+    $keyCheck = & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'test -f ~/.ssh/id_rsa -o -f ~/.ssh/id_ed25519 && echo "exists" || echo "missing"' 2>&1
+    if ($keyCheck -eq "missing") {
+        Write-Host "  WARNING: No SSH key found on EC2" -ForegroundColor Yellow
+        Write-Host "  You need to set up SSH authentication:" -ForegroundColor Yellow
+        Write-Host ("    1. SSH to EC2: ssh -i " + $absoluteKeyPath + " " + $sshTarget) -ForegroundColor Gray
+        Write-Host "    2. Generate key: ssh-keygen -t ed25519 -C 'your_email@example.com' -f ~/.ssh/id_ed25519 -N ''" -ForegroundColor Gray
+        Write-Host "    3. Add to GitHub: cat ~/.ssh/id_ed25519.pub" -ForegroundColor Gray
+        Write-Host "    4. Copy output and add to GitHub Settings > SSH keys" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  Attempting to continue anyway..." -ForegroundColor Yellow
+    }
+}
+
+# Test GitHub SSH connection first (if using SSH)
+if ($githubUrl -match '^git@') {
+    Write-Host "  Testing GitHub SSH connection..." -ForegroundColor Gray
+    $githubTest = & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'ssh -T git@github.com 2>&1' 2>&1
+    if ($githubTest -match 'Permission denied|Could not resolve hostname') {
+        Write-Host "  ERROR: Cannot connect to GitHub via SSH" -ForegroundColor Red
+        Write-Host $githubTest -ForegroundColor Red
+        Write-Host ""
+        Write-Host "You need to set up SSH authentication on EC2:" -ForegroundColor Yellow
+        Write-Host "  Run: .\scripts\setup-github-ssh.ps1" -ForegroundColor Cyan
+        Write-Host "  Or manually SSH to EC2 and set up SSH keys" -ForegroundColor Gray
+        exit 1
+    } elseif ($githubTest -match 'successfully authenticated|Hi.*You') {
+        Write-Host "  GitHub SSH connection successful" -ForegroundColor Green
+    } else {
+        Write-Host "  GitHub SSH test output: $githubTest" -ForegroundColor Yellow
+    }
+}
+
+# Git clone/pull command - capture both stdout and stderr
+Write-Host "  Cloning/pulling repository..." -ForegroundColor Gray
+$gitCmd = "set -e; if [ -d ~/app/.git ]; then cd ~/app && git fetch origin && git reset --hard origin/" + $githubBranch + " && git pull origin " + $githubBranch + "; else (cp ~/app/.env /tmp/app.env.bak 2>/dev/null || true; rm -rf ~/app; git clone -b " + $githubBranch + " '" + $githubUrl + "' ~/app || exit 1; mv /tmp/app.env.bak ~/app/.env 2>/dev/null || true); fi"
+$gitOutput = & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget $gitCmd 2>&1
+$gitExitCode = $LASTEXITCODE
+
+# Display git output for debugging
+if ($gitOutput) {
+    Write-Host $gitOutput -ForegroundColor Gray
+}
+
+# Check if git command succeeded
+if ($gitExitCode -ne 0) {
+    Write-Host "ERROR: Git pull/clone failed (exit code: $gitExitCode)" -ForegroundColor Red
     Write-Host "Possible causes:" -ForegroundColor Yellow
-    Write-Host "  - Repository is private (needs authentication)" -ForegroundColor Gray
+    if ($githubUrl -match '^git@') {
+        Write-Host "  - GitHub SSH key not set up on EC2" -ForegroundColor Gray
+        Write-Host "  - Add your SSH public key to GitHub and EC2 ~/.ssh/authorized_keys" -ForegroundColor Gray
+    } else {
+        Write-Host "  - Repository is private (use SSH format: git@github.com:user/repo.git)" -ForegroundColor Gray
+    }
     Write-Host "  - GITHUB_URL is incorrect" -ForegroundColor Gray
     Write-Host "  - Network issue on EC2" -ForegroundColor Gray
     Write-Host "" -ForegroundColor Gray
-    Write-Host "Try manually: ssh to EC2 and run:" -ForegroundColor Yellow
-    Write-Host ("  git clone " + $githubUrl + " ~/app") -ForegroundColor Gray
+    Write-Host "To fix SSH authentication:" -ForegroundColor Yellow
+    Write-Host ("  1. SSH to EC2: ssh -i " + $absoluteKeyPath + " " + $sshTarget) -ForegroundColor Gray
+    Write-Host "  2. Generate SSH key: ssh-keygen -t ed25519 -C 'your_email@example.com'" -ForegroundColor Gray
+    Write-Host "  3. Add to GitHub: cat ~/.ssh/id_ed25519.pub (then add to GitHub Settings > SSH keys)" -ForegroundColor Gray
+    Write-Host ("  4. Test: ssh -T git@github.com") -ForegroundColor Gray
     exit 1
 }
+
+# Verify repository was cloned successfully
+Write-Host "  Verifying repository..." -ForegroundColor Gray
+$repoCheck = & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'if [ -f ~/app/docker-compose.yml ]; then echo "exists"; else echo "missing"; fi' 2>&1
+if ($repoCheck -ne "exists") {
+    Write-Host "ERROR: Repository clone failed - docker-compose.yml not found" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Debugging information:" -ForegroundColor Yellow
+    $dirCheck = & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'ls -la ~/app 2>&1 | head -20' 2>&1
+    Write-Host "Contents of ~/app:" -ForegroundColor Gray
+    Write-Host $dirCheck -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "The git clone likely failed. Common causes:" -ForegroundColor Yellow
+    Write-Host "  - GitHub SSH key not set up (run: .\scripts\setup-github-ssh.ps1)" -ForegroundColor Gray
+    Write-Host "  - Repository is private and authentication failed" -ForegroundColor Gray
+    Write-Host "  - Network issue on EC2" -ForegroundColor Gray
+    exit 1
+}
+
 Write-Host "  Code synced from GitHub" -ForegroundColor Green
 Write-Host ""
 
@@ -220,8 +302,8 @@ if ($envExists -eq "missing") {
     )
     $envContent = $envLines -join "`n"
     
-    # Create .env on EC2
-    $envContent | & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'cat > ~/app/.env'
+    # Create .env on EC2 (ensure directory exists first)
+    $envContent | & ssh -i $absoluteKeyPath -o StrictHostKeyChecking=no $sshTarget 'mkdir -p ~/app && cat > ~/app/.env'
     
     Write-Host "  .env file created with generated values" -ForegroundColor Green
     Write-Host "  IMPORTANT: Save your database password: $dbPassword" -ForegroundColor Yellow

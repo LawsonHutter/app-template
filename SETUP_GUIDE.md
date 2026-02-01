@@ -122,6 +122,7 @@ git push origin main
    ```powershell
    .\scripts\auto-deploy-ec2.ps1
    ```
+4. Github SSH - you may need to run setup-github-ssh.ps1 and add it to your github ssh-keys
 
 Your site will be up at HTTP (HTTPS requires SSL setup below).
 
